@@ -1,4 +1,4 @@
-package org.gagu.gagubackend.user.seller.domain;
+package org.gagu.gagubackend.user.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 @Builder
 @Entity
 @Table
-public class Seller extends BaseTimeEntity implements UserDetails {
+public class User extends BaseTimeEntity implements UserDetails {
     @Serial
     private static final long serialVersionUID = 937195358763181265L;
 
@@ -30,22 +31,22 @@ public class Seller extends BaseTimeEntity implements UserDetails {
     private Long id;
 
     @Column(nullable = false)
-    private String sellerName;
+    private String name;
 
     @Column(nullable = false, unique = true)
-    private String workShopName;
+    private String nickName;
 
     @Column(nullable = false, unique = true)
     private String password;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String phoneNumber;
 
     @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false, unique = true)
-    private String workShopThumbnail;
+    private String profileUrl;
 
     @Column(nullable = false)
     private String loginType;
@@ -70,7 +71,7 @@ public class Seller extends BaseTimeEntity implements UserDetails {
 
     @Override
     public String getUsername() {
-        return this.email;
+        return this.name;
     }
 
     @Override

@@ -1,7 +1,8 @@
 package org.gagu.gagubackend.global.domain.enums;
 
-public enum loginType {
+public enum LoginType {
     KAKAO,
     APPLE,
-    GOOGLE
+    GOOGLE,
+    NORMAL
 }
