@@ -8,11 +8,11 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.gagu.gagubackend.user.seller.service.impl.SellerDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Component
 public class JwtTokenProvider {
-    private final SellerDetailsServiceImpl sellerDetailsService;
+    private final UserDetailsService userDetailsService;
 
     @Value("${jwt.secret}")
     private String key;
@@ -74,7 +74,7 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String token){
         log.info("[JwtTokenProvider] check authentication");
         try{
-            UserDetails userDetails = sellerDetailsService.loadUserByUsername(getUserEmail(token));
+            UserDetails userDetails = userDetailsService.loadUserByUsername(getUserEmail(token));
             log.info("[JwtTokenProvider] check authentication success");
             return new UsernamePasswordAuthenticationToken(userDetails,"",userDetails.getAuthorities());
         }catch (RuntimeException e) {
@@ -100,7 +100,7 @@ public class JwtTokenProvider {
         log.info("[JwtTokenProvider] refresh access token");
 
         if (validateToken(refreshToken)){
-            UserDetails userDetails = sellerDetailsService.loadUserByUsername(email);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
             List<String> roles = userDetails.getAuthorities().stream().map(authority -> authority.getAuthority())
                     .collect(Collectors.toList());
 
