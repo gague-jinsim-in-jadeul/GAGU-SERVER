@@ -24,7 +24,7 @@ public class AuthController {
     @GetMapping("/kakao/callback")
     public ResponseEntity<?> getKaKaoAuthorizeCode(@RequestParam("code") String authorizeCode, String type){
         type = "kakao";
-        log.info("[google login] authorizeCode : {}", authorizeCode);
+        log.info("[kakao login] authorizeCode : {}", authorizeCode);
         return authService.signIn(authorizeCode, type);
     }
 }
