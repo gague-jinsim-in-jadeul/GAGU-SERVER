@@ -3,6 +3,7 @@ package org.gagu.gagubackend.auth.dao.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.dao.AuthDAO;
+import org.gagu.gagubackend.auth.dao.NicknameDAO;
 import org.gagu.gagubackend.auth.dto.request.RequestAuthDto;
 import org.gagu.gagubackend.auth.dto.response.ResponseAuthDto;
 import org.gagu.gagubackend.global.domain.CommonResponse;
@@ -21,6 +22,7 @@ import java.util.Collections;
 public class AuthDAOImpl implements AuthDAO {
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final NicknameDAO nicknameDAO;
     @Override
     public ResponseEntity<?> login(RequestAuthDto requestAuthDto) {
         if (checkUserExist(requestAuthDto.getEmail(), requestAuthDto.getLoginType())) {
@@ -51,9 +53,11 @@ public class AuthDAOImpl implements AuthDAO {
 
 
     private CommonResponse signUp(RequestAuthDto requestAuthDto){
+        log.info("[auth] signup");
+
         User user = User.builder()
                 .name(requestAuthDto.getName())
-                .nickName(requestAuthDto.getNickName())
+                .nickName(nicknameDAO.generateNickName())
                 .password(requestAuthDto.getPassword())
                 .phoneNumber(requestAuthDto.getPhoneNumber())
                 .email(requestAuthDto.getEmail())
@@ -64,6 +68,7 @@ public class AuthDAOImpl implements AuthDAO {
                 .build();
 
         userRepository.save(user);
+        log.info("[auth] signup success");
 
         return CommonResponse.success();
     }

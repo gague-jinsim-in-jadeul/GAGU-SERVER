@@ -1,6 +1,5 @@
 package org.gagu.gagubackend.auth.service.impl;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.security.SecureRandom;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @Slf4j
@@ -45,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
     private String kakaoClientKey;
     @Value("${kakao.redirect.url}")
     private String kakaoRedirectUrl;
-    @Value("{$kakao.accesstoken.url}")
+    @Value("${kakao.accesstoken.url}")
     private String kakaoAccessTokenUrl;
     @Value("${kakao.userinfo.url}")
     private String kakaoUserInfoUrl;
@@ -81,6 +81,8 @@ public class AuthServiceImpl implements AuthService {
                     String accessToken = (String) responseMap.get("access_token");
 
                     RequestAuthDto requestSignUpDto = getKakaoUserInfo(accessToken);
+
+                    log.info("[kakao login] dto : {}", requestSignUpDto.toString());
 
                     return authDAO.login(requestSignUpDto);
 
@@ -151,7 +153,7 @@ public class AuthServiceImpl implements AuthService {
 
             RequestAuthDto requestSignUpDto = RequestAuthDto.builder()
                     .name((String) kakaoAccount.get("name"))
-                    .nickName((String) kakaoAccount.get("nickname"))
+                    .nickName(null)
                     .password(getRandomPassword())
                     .phoneNumber((String) kakaoAccount.get("phone_number"))
                     .email((String)kakaoAccount.get("email"))
@@ -182,7 +184,7 @@ public class AuthServiceImpl implements AuthService {
 
             RequestAuthDto requestSignUpDto = RequestAuthDto.builder()
                     .name((String) responseMap.get("name"))
-                    .nickName(nickName)
+                    .nickName(null)
                     .password(getRandomPassword())
                     .phoneNumber(null)
                     .email((String)responseMap.get("email"))
