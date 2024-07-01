@@ -31,8 +31,8 @@ public class AuthDAOImpl implements AuthDAO {
             if (user.isEnabled()) {
                 return ResponseEntity.status(ResultCode.OK.getCode())
                         .body(ResponseAuthDto.builder()
-                                .accessToken(jwtTokenProvider.createAccessToken(user.getEmail(), user.getRoles()))
-                                .refreshToken(jwtTokenProvider.createRefreshToken(user.getEmail()))
+                                .accessToken(jwtTokenProvider.createAccessToken(user.getEmail(), user.getNickName(),user.getRoles()))
+                                .refreshToken(jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName()))
                                 .name(user.getUsername())
                                 .status(CommonResponse.success())
                                 .build());
