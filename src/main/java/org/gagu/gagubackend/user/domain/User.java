@@ -40,7 +40,7 @@ public class User extends BaseTimeEntity implements UserDetails {
     @Column(nullable = false, unique = true)
     private String password;
 
-    @Column(unique = true)
+    @Column
     private String phoneNumber;
 
     @Column(nullable = false)

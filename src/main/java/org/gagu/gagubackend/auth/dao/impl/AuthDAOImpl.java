@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.dao.AuthDAO;
 import org.gagu.gagubackend.auth.dao.NicknameDAO;
-import org.gagu.gagubackend.auth.dto.request.RequestAuthDto;
+import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
 import org.gagu.gagubackend.auth.dto.response.ResponseAuthDto;
 import org.gagu.gagubackend.global.domain.CommonResponse;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
@@ -24,9 +24,9 @@ public class AuthDAOImpl implements AuthDAO {
     private final JwtTokenProvider jwtTokenProvider;
     private final NicknameDAO nicknameDAO;
     @Override
-    public ResponseEntity<?> login(RequestAuthDto requestAuthDto) {
-        if (checkUserExist(requestAuthDto.getEmail(), requestAuthDto.getLoginType())) {
-            User user = userRepository.findByEmailAndLoginType(requestAuthDto.getEmail(), requestAuthDto.getLoginType());
+    public ResponseEntity<?> login(RequestSaveUserDto requestSaveUserDto) {
+        if (checkUserExist(requestSaveUserDto.getEmail(), requestSaveUserDto.getLoginType())) {
+            User user = userRepository.findByEmailAndLoginType(requestSaveUserDto.getEmail(), requestSaveUserDto.getLoginType());
             log.info("user name : {}",user.getUsername());
             if (user.isEnabled()) {
                 return ResponseEntity.status(ResultCode.OK.getCode())
@@ -43,27 +43,27 @@ public class AuthDAOImpl implements AuthDAO {
             }
         } else {
             log.info("[sign up] no user");
-            CommonResponse commonResponse = signUp(requestAuthDto);
+            CommonResponse commonResponse = signUp(requestSaveUserDto);
             if (commonResponse.getCode() == 200) {
-                return login(requestAuthDto);
+                return login(requestSaveUserDto);
             }
         }
         return null;
     }
 
 
-    private CommonResponse signUp(RequestAuthDto requestAuthDto){
+    private CommonResponse signUp(RequestSaveUserDto requestSaveUserDto){
         log.info("[auth] signup");
 
         User user = User.builder()
-                .name(requestAuthDto.getName())
+                .name(requestSaveUserDto.getName())
                 .nickName(nicknameDAO.generateNickName())
-                .password(requestAuthDto.getPassword())
-                .phoneNumber(requestAuthDto.getPhoneNumber())
-                .email(requestAuthDto.getEmail())
-                .profileUrl(requestAuthDto.getProfileUrl())
-                .loginType(requestAuthDto.getLoginType())
-                .useAble(requestAuthDto.isUseAble())
+                .password(requestSaveUserDto.getPassword())
+                .phoneNumber(requestSaveUserDto.getPhoneNumber())
+                .email(requestSaveUserDto.getEmail())
+                .profileUrl(requestSaveUserDto.getProfileUrl())
+                .loginType(requestSaveUserDto.getLoginType())
+                .useAble(requestSaveUserDto.isUseAble())
                 .roles(Collections.singletonList("ROLE_USER"))
                 .build();
 
