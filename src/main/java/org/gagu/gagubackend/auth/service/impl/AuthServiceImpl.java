@@ -22,7 +22,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.security.SecureRandom;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @Slf4j
@@ -177,7 +176,7 @@ public class AuthServiceImpl implements AuthService {
 
         HttpEntity<MultiValueMap<String, String>> userInfoRequest = new HttpEntity<>(headers);
         ResponseEntity<String> userInfoResponse = restTemplate.exchange(googleUserInfoUri,HttpMethod.GET,userInfoRequest,String.class);
-
+        log.info("[google user info] : {}",userInfoResponse.toString());
         try{
             Map<String, Object> responseMap = mapper.readValue(userInfoResponse.getBody(), new TypeReference<Map<String, Object>>() {});
             String nickName = getRandomNickName((String)responseMap.get("name"),(String)responseMap.get("id"));

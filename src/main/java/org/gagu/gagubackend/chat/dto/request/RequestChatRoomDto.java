@@ -9,6 +9,5 @@ import lombok.*;
 @ToString
 @Builder
 public class RequestChatRoomDto {
-    private String buyerEmail;
-    private String sellerEmail;
+    private Long roomId;
 }

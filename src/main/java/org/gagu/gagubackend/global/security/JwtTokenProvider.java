@@ -16,9 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -33,25 +31,25 @@ public class JwtTokenProvider {
     private final long accessTokenValidTime = 1000L * 60 * 60;
     private final long refreshTokenValidTime = 1000L * 60 * 60 * 24 * 14;
 
-    public String createAccessToken(String email, List<String> roles){
+    public String createAccessToken(String email,String nickName, List<String> roles){
         log.info("[JwtTokenProvider] create access token");
-        String token =  createToken(email, roles, accessTokenValidTime);
+        String token =  createToken(email, nickName ,roles, accessTokenValidTime);
         token = "Bearer " + token;
         log.info("[JwtTokenProvider] create access token success");
         return token;
     }
 
-    public String createRefreshToken(String email){
+    public String createRefreshToken(String email, String nickName){
         log.info("[JwtTokenProvider] create refresh token : {}", email);
-        String token =  createToken(email, new ArrayList<>(), refreshTokenValidTime);
+        String token =  createToken(email, nickName,new ArrayList<>(), refreshTokenValidTime);
         token = "Bearer " + token;
         log.info("[JwtTokenProvider] create refresh token success");
         return token;
     }
 
-    private String createToken(String email, List<String> roles, long validTime){
+    private String createToken(String email, String nickName,List<String> roles, long validTime){
         log.info("[JwtTokenProvider] create token");
-        Claims claims = Jwts.claims().setAudience(email);
+        Claims claims = Jwts.claims().setAudience(email).setIssuer(nickName);
         claims.put("roles", roles);
 
         Date now = new Date();
@@ -73,12 +71,13 @@ public class JwtTokenProvider {
 
     public Authentication getAuthentication(String token){
         log.info("[JwtTokenProvider] check authentication");
+        log.info("[JwtTokenProvider] token : {}", token);
         try{
-            UserDetails userDetails = userDetailsService.loadUserByUsername(getUserEmail(token));
+            UserDetails userDetails = userDetailsService.loadUserByUsername(getUserNickName(token));
             log.info("[JwtTokenProvider] check authentication success");
             return new UsernamePasswordAuthenticationToken(userDetails,"",userDetails.getAuthorities());
         }catch (RuntimeException e) {
-            log.error("[JwtTokenProvider] can't not found user" + e);
+            log.error("[JwtTokenProvider] can't not found user " + e);
         }
         return null;
     }
@@ -96,7 +95,39 @@ public class JwtTokenProvider {
         return info;
     }
 
-    public String refreshToken(String refreshToken, String email){
+    /**
+     *
+     * @param token
+     * @return {email : email, nickname : nickname}
+     */
+    public Map<String, String> getUserInfo(String token){
+        log.info("[JwtTokenProvider] check user email");
+        Claims info = Jwts.parserBuilder()
+                .setSigningKey(key.getBytes())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        HashMap<String, String> userInfoMap = new HashMap<String, String>();
+
+        userInfoMap.put("email",info.getAudience());
+        userInfoMap.put("nickname", info.getIssuer());
+
+        return userInfoMap;
+    }
+
+    public String getUserNickName(String token){
+        log.info("[JwtTokenProvider] check user nickname");
+        String info = Jwts.parserBuilder()
+                .setSigningKey(key.getBytes())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getIssuer();
+        log.info("[JwtTokenProvider] check user nickname success");
+        return info;
+    }
+
+    public String refreshToken(String refreshToken, String nickName,String email){
         log.info("[JwtTokenProvider] refresh access token");
 
         if (validateToken(refreshToken)){
@@ -104,7 +135,7 @@ public class JwtTokenProvider {
             List<String> roles = userDetails.getAuthorities().stream().map(authority -> authority.getAuthority())
                     .collect(Collectors.toList());
 
-            return createAccessToken(email, roles);
+            return createAccessToken(email, nickName, roles);
         }else{
             throw new RuntimeException("refresh token is not valid");
         }

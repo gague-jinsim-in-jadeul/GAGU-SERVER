@@ -2,6 +2,7 @@ package org.gagu.gagubackend.user.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.gagu.gagubackend.chat.domain.ChatRoomMember;
 import org.gagu.gagubackend.global.domain.BaseTimeEntity;
 import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
@@ -42,7 +43,7 @@ public class User extends BaseTimeEntity implements UserDetails {
     @Column(unique = true)
     private String phoneNumber;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
     @Column(nullable = false, unique = true)
@@ -63,6 +64,9 @@ public class User extends BaseTimeEntity implements UserDetails {
 
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> roles = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member")
+    private List<ChatRoomMember> chatRoom;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
