@@ -5,7 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.dao.AuthDAO;
-import org.gagu.gagubackend.auth.dto.request.RequestAuthDto;
+import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
+import org.gagu.gagubackend.auth.dto.request.RequestSignDto;
 import org.gagu.gagubackend.auth.service.AuthService;
 import org.gagu.gagubackend.global.domain.CommonResponse;
 import org.gagu.gagubackend.global.domain.enums.LoginType;
@@ -79,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
                     Map<String, Object> responseMap = objectMapper.readValue(response.getBody(), new TypeReference<Map<String, Object>>() {});
                     String accessToken = (String) responseMap.get("access_token");
 
-                    RequestAuthDto requestSignUpDto = getKakaoUserInfo(accessToken);
+                    RequestSaveUserDto requestSignUpDto = getKakaoUserInfo(accessToken);
 
                     log.info("[kakao login] dto : {}", requestSignUpDto.toString());
 
@@ -117,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
                     log.info("[google login] accessToken : {}",accessToken);
 
                     log.warn("[google login] get user info");
-                    RequestAuthDto requestSignUpDto = getGoogleUserInfo(accessToken);
+                    RequestSaveUserDto requestSignUpDto = getGoogleUserInfo(accessToken);
 
                     return authDAO.login(requestSignUpDto);
                 }catch (Exception e){
@@ -130,7 +131,49 @@ public class AuthServiceImpl implements AuthService {
         return null;
     }
 
-    private RequestAuthDto getKakaoUserInfo(String accessToken){
+    @Override
+    public ResponseEntity<?> normalSignIn(RequestSignDto requestSignDto, String type) {
+        switch (type){
+            case "kakao":
+                log.info("[kakao login] kakao sign");
+
+                RequestSaveUserDto requestSignUpDto = RequestSaveUserDto.builder()
+                        .name(requestSignDto.getName())
+                        .nickName(null)
+                        .password(getRandomPassword())
+                        .email(requestSignDto.getEmail())
+                        .phoneNumber(null)
+                        .profileUrl(requestSignDto.getProfileUrl())
+                        .loginType(LoginType.KAKAO.toString())
+                        .useAble(true)
+                        .build();
+
+                    log.info("[kakao login] dto : {}", requestSignUpDto.toString());
+
+                    return authDAO.login(requestSignUpDto);
+
+            case "google":
+                log.info("[google login] google sign");
+
+                 requestSignUpDto = RequestSaveUserDto.builder()
+                        .name(requestSignDto.getName())
+                        .nickName(null)
+                        .password(getRandomPassword())
+                        .email(requestSignDto.getEmail())
+                        .phoneNumber(null)
+                        .profileUrl(requestSignDto.getProfileUrl())
+                        .loginType(LoginType.GOOGLE.toString())
+                        .useAble(true)
+                        .build();
+
+                log.info("[google login] dto : {}", requestSignUpDto.toString());
+
+                return authDAO.login(requestSignUpDto);
+        }
+        return null;
+    }
+
+    private RequestSaveUserDto getKakaoUserInfo(String accessToken){
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         ObjectMapper mapper = new ObjectMapper();
@@ -150,7 +193,7 @@ public class AuthServiceImpl implements AuthService {
             Map<String, Object> kakaoAccount = (Map<String, Object>) responseMap.get("kakao_account");
             Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
 
-            RequestAuthDto requestSignUpDto = RequestAuthDto.builder()
+            RequestSaveUserDto requestSignUpDto = RequestSaveUserDto.builder()
                     .name((String) kakaoAccount.get("name"))
                     .nickName(null)
                     .password(getRandomPassword())
@@ -168,7 +211,7 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private RequestAuthDto getGoogleUserInfo(String accessToken){
+    private RequestSaveUserDto getGoogleUserInfo(String accessToken){
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         ObjectMapper mapper = new ObjectMapper();
@@ -181,7 +224,7 @@ public class AuthServiceImpl implements AuthService {
             Map<String, Object> responseMap = mapper.readValue(userInfoResponse.getBody(), new TypeReference<Map<String, Object>>() {});
             String nickName = getRandomNickName((String)responseMap.get("name"),(String)responseMap.get("id"));
 
-            RequestAuthDto requestSignUpDto = RequestAuthDto.builder()
+            RequestSaveUserDto requestSignUpDto = RequestSaveUserDto.builder()
                     .name((String) responseMap.get("name"))
                     .nickName(null)
                     .password(getRandomPassword())

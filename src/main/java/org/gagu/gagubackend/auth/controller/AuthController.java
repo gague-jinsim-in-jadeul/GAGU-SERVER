@@ -2,12 +2,10 @@ package org.gagu.gagubackend.auth.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.gagu.gagubackend.auth.dto.request.RequestSignDto;
 import org.gagu.gagubackend.auth.service.AuthService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -26,5 +24,15 @@ public class AuthController {
         type = "kakao";
         log.info("[kakao login] authorizeCode : {}", authorizeCode);
         return authService.signIn(authorizeCode, type);
+    }
+    @PostMapping("/google/sign")
+    public ResponseEntity<?> googleSign(@RequestBody RequestSignDto requestSignDto){
+        String type = "google";
+        return authService.normalSignIn(requestSignDto, type);
+    }
+    @PostMapping("/kakao/sign")
+    public ResponseEntity<?> kaKaoSign(@RequestBody RequestSignDto requestSignDto){
+        String type = "kakao";
+        return authService.normalSignIn(requestSignDto, type);
     }
 }
