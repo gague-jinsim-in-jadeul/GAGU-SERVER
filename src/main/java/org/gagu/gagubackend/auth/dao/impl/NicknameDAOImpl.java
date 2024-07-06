@@ -16,14 +16,14 @@ public class NicknameDAOImpl implements NicknameDAO {
     private final UserRepository userRepository;
 
     @Override
-    public String generateNickName() {
-        int number = counter.incrementAndGet();
-        String nickname = "GAGU#" + number;
+    public synchronized String generateNickName() {
+        String nickname;
 
-        while(checkNickname(nickname)){
-            number = counter.incrementAndGet();
-        }
-        return "GAGU#" + number;
+        do {
+            int number = counter.getAndIncrement();
+            nickname = "GAGU#" + number;
+        } while(checkNickname(nickname));
+        return nickname;
     }
     private boolean checkNickname(String nickname){
         return userRepository.existsByNickName(nickname);
