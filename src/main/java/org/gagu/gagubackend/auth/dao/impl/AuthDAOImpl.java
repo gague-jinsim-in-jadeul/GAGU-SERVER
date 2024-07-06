@@ -11,6 +11,7 @@ import org.gagu.gagubackend.global.domain.enums.ResultCode;
 import org.gagu.gagubackend.global.security.JwtTokenProvider;
 import org.gagu.gagubackend.user.domain.User;
 import org.gagu.gagubackend.user.repository.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
@@ -66,9 +67,14 @@ public class AuthDAOImpl implements AuthDAO {
                 .useAble(requestSaveUserDto.isUseAble())
                 .roles(Collections.singletonList("ROLE_USER"))
                 .build();
-
-        userRepository.save(user);
-        log.info("[auth] signup success");
+        try{
+            userRepository.save(user);
+            log.info("[auth] signup success");
+        }catch (DataIntegrityViolationException e){
+            log.warn("[auth] signup failed due to duplicate nickname, retrying...");
+            user.setNickName(nicknameDAO.generateNickName());
+            userRepository.save(user);
+        }
 
         return CommonResponse.success();
     }
