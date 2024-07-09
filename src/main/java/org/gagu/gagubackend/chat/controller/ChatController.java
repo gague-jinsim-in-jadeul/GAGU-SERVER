@@ -5,16 +5,30 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.gagu.gagubackend.chat.domain.ChatRoom;
+import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
-import org.gagu.gagubackend.chat.dto.request.RequestChatRoomDto;
+import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
+import org.gagu.gagubackend.chat.repository.ChatRoomMemberRepository;
+import org.gagu.gagubackend.chat.repository.ChatRoomRepository;
 import org.gagu.gagubackend.chat.service.ChatService;
-import org.gagu.gagubackend.global.domain.enums.ResultCode;
+import org.gagu.gagubackend.global.domain.enums.MessageType;
+import org.gagu.gagubackend.global.exception.NotMemberException;
 import org.gagu.gagubackend.global.security.JwtTokenProvider;
+import org.gagu.gagubackend.user.domain.User;
 import org.gagu.gagubackend.user.dto.request.RequestUserInfoDto;
+import org.gagu.gagubackend.user.repository.UserRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/v1/chat")
@@ -23,17 +37,17 @@ import java.util.Map;
 public class ChatController {
     private final JwtTokenProvider jwtTokenProvider;
     private final ChatService chatService;
-    @Operation(summary = "결제 이후 채팅방을 새로 생성합니다.", security = @SecurityRequirement(name="JWT"))
+    private final SimpMessagingTemplate template;
+    private final UserRepository userRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomMemberRepository chatRoomMemberRepository;
+
+    @Operation(summary = "결제 전 채팅방을 새로 생성합니다.", security = @SecurityRequirement(name="JWT"))
     @PostMapping("/new")
     public ResponseEntity<?> createChatRoom(
             HttpServletRequest request,
             @RequestBody RequestCreateChatRoomDto requestCreateChatRoomDto){
         String token = jwtTokenProvider.extractToken(request);
-        log.info("[chat] token : {}", token);
-
-        if (token == null || token.isEmpty()) {
-            return ResponseEntity.status(ResultCode.UNAUTHORIZED.getCode()).body("Invalid token");
-        }
 
         Map<String, String> userInfoMap = jwtTokenProvider.getUserInfo(token);
         log.info("[chat] user info : {}", userInfoMap.toString());
@@ -45,19 +59,62 @@ public class ChatController {
         return chatService.createChatRoom(userInfoDto, requestCreateChatRoomDto);
     }
     @Operation(summary = "채팅방을 나갑니다.", security = @SecurityRequirement(name = "JWT"))
-    @DeleteMapping("/out/{roomId}")
+    @DeleteMapping("/out/{roomNumber}")
     public ResponseEntity<?> removeChatRoom(
             HttpServletRequest request,
-            @PathVariable Long roomId){
+            @PathVariable Long roomNumber){
 
-        return chatService.exitChatRoom(roomId);
+        return chatService.exitChatRoom(roomNumber);
     }
     @Operation(summary = "채팅방 내역을 조회합니다.", security = @SecurityRequirement(name = "JWT"))
-    @GetMapping("/contents")
+    @GetMapping("/contents/{roomNumber}")
     public ResponseEntity<?> getChatRoom(
-            @RequestHeader("Authorization") String authorization,
-            @RequestBody RequestChatRoomDto requestChatRoomDto){
+            HttpServletRequest request,
+            @RequestParam int page,
+            @PathVariable Long roomNumber){
 
-        return null;
+        Pageable pageable = PageRequest.of(page,10, Sort.Direction.DESC,"sendTime");
+
+        String token = jwtTokenProvider.extractToken(request);
+        String nickName = jwtTokenProvider.getUserNickName(token);
+
+        return ResponseEntity.ok(chatService.getChatContents(nickName,pageable,roomNumber));
+    }
+    @MessageMapping("/gagu-chat/{roomNumber}") // mapping ex)/pub/gagu/chat
+    public void sendMessage(RequestChatContentsDto message,
+                                         SimpMessageHeaderAccessor accessor,
+                                         @DestinationVariable Long roomNumber) throws Exception {
+
+        log.info("[chat] room id : {}",roomNumber);
+
+        String nickname = (String) accessor.getSessionAttributes().get("senderNickname");
+        log.info("[chat] check memeber....");
+        if (nickname == null) {
+            throw new IllegalArgumentException("세션에 닉네임이 없습니다.");
+        }
+        message.setNickname(nickname);
+
+        if(message.getType() == MessageType.SUBSCRIBE){ // type : SUBSCRIBE
+            User member = userRepository.findByNickName(message.getNickname());
+            Optional<ChatRoom> chatRoomList = chatRoomRepository.findById(roomNumber);
+            if(chatRoomList.isPresent() && checkMember(chatRoomList.get(),member)){
+                accessor.getSessionAttributes().put("chatRoomId",roomNumber);
+            }else{
+                throw new NotMemberException("채팅방에 속해 있지 않습니다.");
+            }
+        }else{ // type : SEND
+            Long sessionRoomId = (Long) accessor.getSessionAttributes().get("chatRoomId");
+            if(sessionRoomId == null || !sessionRoomId.equals(roomNumber)){
+                throw new NotMemberException("채팅방에 속해 있지 않습니다.");
+            }
+        }
+        log.info("[chat] complete check member");
+        Thread.sleep(1000); // 비동기적으로 메시지를 처리하기 위해서 1초 지연(옵션)
+
+        ResponseChatDto responseChatDto = chatService.sendContents(message,roomNumber);
+        template.convertAndSend("/sub/chatroom/"+roomNumber,responseChatDto); // 구독하고 있는 채팅방에 전송
+    }
+    private boolean checkMember(ChatRoom roomId, User member){
+        return chatRoomMemberRepository.existsChatRoomMemberByRoomIdAndMember(roomId,member);
     }
 }
