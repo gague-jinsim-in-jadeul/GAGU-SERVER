@@ -117,14 +117,19 @@ public class JwtTokenProvider {
 
     public String getUserNickName(String token){
         log.info("[JwtTokenProvider] check user nickname");
-        String info = Jwts.parserBuilder()
-                .setSigningKey(key.getBytes())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getIssuer();
-        log.info("[JwtTokenProvider] check user nickname success");
-        return info;
+        try{
+            String info = Jwts.parserBuilder()
+                    .setSigningKey(key.getBytes())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getIssuer();
+            log.info("[JwtTokenProvider] check user nickname success");
+            return info;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public String refreshToken(String refreshToken, String nickName,String email){
