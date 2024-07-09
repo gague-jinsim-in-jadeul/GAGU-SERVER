@@ -4,5 +4,5 @@ public enum LoginType {
     KAKAO,
     APPLE,
     GOOGLE,
-    NORMAL
+    GENERAL
 }

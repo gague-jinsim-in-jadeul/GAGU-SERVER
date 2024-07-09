@@ -5,17 +5,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.dao.AuthDAO;
+import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignDto;
+import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignUpDto;
 import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
-import org.gagu.gagubackend.auth.dto.request.RequestSignDto;
+import org.gagu.gagubackend.auth.dto.request.RequestOauthSignDto;
 import org.gagu.gagubackend.auth.service.AuthService;
 import org.gagu.gagubackend.global.domain.CommonResponse;
 import org.gagu.gagubackend.global.domain.enums.LoginType;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
+import org.gagu.gagubackend.user.domain.User;
+import org.gagu.gagubackend.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -29,6 +34,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
     private final AuthDAO authDAO;
+    private final UserRepository userRepository;
     @Value("${google.accesstoken.url}")
     private String googleAccessTokenUrl;
     @Value("${google.client.id}")
@@ -132,18 +138,18 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<?> normalSignIn(RequestSignDto requestSignDto, String type) {
+    public ResponseEntity<?> normalSignIn(RequestOauthSignDto requestOauthSignDto, String type) {
         switch (type){
             case "kakao":
                 log.info("[kakao login] kakao sign");
 
                 RequestSaveUserDto requestSignUpDto = RequestSaveUserDto.builder()
-                        .name(requestSignDto.getName())
+                        .name(requestOauthSignDto.getName())
                         .nickName(null)
                         .password(getRandomPassword())
-                        .email(requestSignDto.getEmail())
+                        .email(requestOauthSignDto.getEmail())
                         .phoneNumber(null)
-                        .profileUrl(requestSignDto.getProfileUrl())
+                        .profileUrl(requestOauthSignDto.getProfileUrl())
                         .loginType(LoginType.KAKAO.toString())
                         .useAble(true)
                         .build();
@@ -156,12 +162,12 @@ public class AuthServiceImpl implements AuthService {
                 log.info("[google login] google sign");
 
                  requestSignUpDto = RequestSaveUserDto.builder()
-                        .name(requestSignDto.getName())
+                        .name(requestOauthSignDto.getName())
                         .nickName(null)
                         .password(getRandomPassword())
-                        .email(requestSignDto.getEmail())
+                        .email(requestOauthSignDto.getEmail())
                         .phoneNumber(null)
-                        .profileUrl(requestSignDto.getProfileUrl())
+                        .profileUrl(requestOauthSignDto.getProfileUrl())
                         .loginType(LoginType.GOOGLE.toString())
                         .useAble(true)
                         .build();
@@ -171,6 +177,32 @@ public class AuthServiceImpl implements AuthService {
                 return authDAO.login(requestSignUpDto);
         }
         return null;
+    }
+
+    @Override
+    public ResponseEntity<?> generalSingUp(RequestGeneralSignUpDto requestGeneralSignUpDto, String type) {
+        log.info("[general sign] workshop sign-up");
+
+        String password = requestGeneralSignUpDto.getPassword();
+        String encodingPassword = passwordEncoding(password);
+
+        RequestSaveUserDto requestSaveUserDto = RequestSaveUserDto.builder()
+                .name(requestGeneralSignUpDto.getWorkShopName())
+                .nickName(requestGeneralSignUpDto.getWorkShopName())
+                .password(encodingPassword)
+                .phoneNumber(null)
+                .email(requestGeneralSignUpDto.getEmail())
+                .profileUrl(requestGeneralSignUpDto.getProfileUrl())
+                .loginType(LoginType.GENERAL.toString())
+                .useAble(true)
+                .build();
+
+        return authDAO.login(requestSaveUserDto);
+    }
+
+    @Override
+    public ResponseEntity<?> generalSignIn(RequestGeneralSignDto requestGeneralSignDto, String type) {
+        return authDAO.generalLogin(requestGeneralSignDto,type);
     }
 
     private RequestSaveUserDto getKakaoUserInfo(String accessToken){
@@ -279,4 +311,12 @@ public class AuthServiceImpl implements AuthService {
 
         return sb.toString();
     }
+    private String passwordEncoding(String password){
+        // Create an encoder with all the defaults
+        Argon2PasswordEncoder encoder = Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+        String result = encoder.encode(password);
+
+        return result;
+    }
+
 }
