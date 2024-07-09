@@ -31,7 +31,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/css/**",
             "/images/**",
             "/js/**",
-            "/favicon.ico"
+            "/favicon.ico",
+            "/chat/**"
     );
 
     @Override

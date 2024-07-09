@@ -1,37 +1,40 @@
 package org.gagu.gagubackend.chat.dao.impl;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.chat.dao.ChatDAO;
+import org.gagu.gagubackend.chat.domain.ChatContents;
 import org.gagu.gagubackend.chat.domain.ChatRoom;
 import org.gagu.gagubackend.chat.domain.ChatRoomMember;
+import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
+import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
+import org.gagu.gagubackend.chat.repository.ChatContentsRepository;
 import org.gagu.gagubackend.chat.repository.ChatRoomMemberRepository;
 import org.gagu.gagubackend.chat.repository.ChatRoomRepository;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
+import org.gagu.gagubackend.global.exception.ChatRoomNotFoundException;
+import org.gagu.gagubackend.global.exception.NotMemberException;
 import org.gagu.gagubackend.user.domain.User;
 import org.gagu.gagubackend.user.dto.request.RequestUserInfoDto;
 import org.gagu.gagubackend.user.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class ChatDAOImpl implements ChatDAO {
     private final UserRepository userRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatRoomRepository chatRoomRepository;
-
-    @Autowired
-    public ChatDAOImpl(UserRepository userRepository, ChatRoomMemberRepository chatRoomMemberRepository, ChatRoomRepository chatRoomRepository) {
-        this.userRepository = userRepository;
-        this.chatRoomMemberRepository = chatRoomMemberRepository;
-        this.chatRoomRepository = chatRoomRepository;
-    }
-
+    private final ChatContentsRepository chatContentsRepository;
     @Override
     public ResponseEntity<?> createChatRoom(RequestUserInfoDto userInfoDto, RequestCreateChatRoomDto requestCreateChatRoomDto) {
         log.info("[chat] crate chat room");
@@ -97,6 +100,48 @@ public class ChatDAOImpl implements ChatDAO {
         }
     }
 
+    @Override
+    public ResponseChatDto saveMessage(RequestChatContentsDto requestChatContentsDto, Long roomId) {
+
+        // 저장되는 채팅 내역
+        ChatContents chatContents = ChatContents.builder()
+                .sendTime(LocalDateTime.now())
+                .sender(requestChatContentsDto.getNickname())
+                .message(requestChatContentsDto.getContents())
+                .chatRoomId(roomId)
+                .build();
+
+        // 실제 전송되는 메세지
+        ResponseChatDto responseChatDto = ResponseChatDto.builder()
+                .contents(chatContents.getMessage())
+                .nickName(chatContents.getSender())
+                .time(chatContents.getSendTime())
+                .build();
+
+        chatContentsRepository.save(chatContents);
+
+        return responseChatDto;
+    }
+
+    @Override
+    public Page<ChatContents> getChatContents(String nickname, Pageable pageable, Long roomNumber) {
+        log.info("[chat] get chat contents room number : {}",roomNumber);
+        log.info("[chat] pageable : {}",pageable.toString());
+        User user = userRepository.findByNickName(nickname);
+        Optional<ChatRoom> chatRoomList = chatRoomRepository.findById(roomNumber);
+        if(!chatRoomList.isEmpty()){
+            ChatRoom chatRoom = chatRoomList.get();
+            if(checkMember(chatRoom,user)){
+                return chatContentsRepository.findByChatRoomId(roomNumber,pageable);
+            }else{
+                throw new NotMemberException("채팅방 조회 권한이 없습니다.");
+            }
+        }else{
+            throw new ChatRoomNotFoundException("채팅방이 존재하지 않습니다.");
+        }
+    }
+
+
     private boolean checkUserExist(String userEmail, String userNickname){
         log.info("[chat] check user exist");
         return userRepository.existsByEmailAndNickName(userEmail, userNickname);
@@ -110,5 +155,8 @@ public class ChatDAOImpl implements ChatDAO {
     }
     private String createChatRoomName(String buyerName, String sellerName){
         return buyerName + "님과 " + sellerName + "과의 채팅방";
+    }
+    public boolean checkMember(ChatRoom roomId, User member){
+        return chatRoomMemberRepository.existsChatRoomMemberByRoomIdAndMember(roomId,member);
     }
 }

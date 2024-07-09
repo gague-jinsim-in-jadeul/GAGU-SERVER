@@ -2,7 +2,6 @@ package org.gagu.gagubackend.chat.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.gagu.gagubackend.global.domain.BaseTimeEntity;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table
-public class ChatContents extends BaseTimeEntity {
+public class ChatContents {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,7 +26,6 @@ public class ChatContents extends BaseTimeEntity {
     @Column(nullable = false)
     private String message;
 
-    @ManyToOne
-    @JoinColumn
-    private ChatRoom chatRoom;
+    @Column(nullable = false)
+    private Long chatRoomId;
 }
