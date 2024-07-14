@@ -48,10 +48,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try{
                 Authentication authentication = jwtTokenProvider.getAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                log.info("[jwt authentication filter] : authentication success");
             }catch (Exception e){
                 request.setAttribute("error", ResultCode.FAIL);
             }
         }
+
 
         filterChain.doFilter(request, response);
     }
