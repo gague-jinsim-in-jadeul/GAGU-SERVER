@@ -5,6 +5,7 @@ import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignUpDto;
 import org.gagu.gagubackend.auth.dto.request.RequestOauthSignDto;
 import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface AuthService {
     /**
@@ -37,4 +38,12 @@ public interface AuthService {
      * @return
      */
     ResponseEntity<?> generalSignIn(RequestGeneralSignDto requestGeneralSignDto, String type);
+
+    /**
+     * 회원가입 이후 프로필 이미지 변경
+     * @param file
+     * @param nickname
+     * @return
+     */
+    ResponseEntity<?> changeProfile(MultipartFile file, String nickname);
 }

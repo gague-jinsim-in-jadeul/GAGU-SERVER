@@ -1,5 +1,7 @@
 package org.gagu.gagubackend.auth.service.impl;
 
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -13,19 +15,16 @@ import org.gagu.gagubackend.auth.service.AuthService;
 import org.gagu.gagubackend.global.domain.CommonResponse;
 import org.gagu.gagubackend.global.domain.enums.LoginType;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
-import org.gagu.gagubackend.user.domain.User;
-import org.gagu.gagubackend.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Map;
 
@@ -34,7 +33,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
     private final AuthDAO authDAO;
-    private final UserRepository userRepository;
+    private final AmazonS3Client amazonS3Client;
     @Value("${google.accesstoken.url}")
     private String googleAccessTokenUrl;
     @Value("${google.client.id}")
@@ -45,8 +44,6 @@ public class AuthServiceImpl implements AuthService {
     private String googleRedirectUri;
     @Value("${google.userinfo.uri}")
     private String googleUserInfoUri;
-    @Value("${google.people.uri}")
-    private String googlePeopleUri;
     @Value("${kakao.client.id}")
     private String kakaoClientKey;
     @Value("${kakao.redirect.url}")
@@ -55,6 +52,9 @@ public class AuthServiceImpl implements AuthService {
     private String kakaoAccessTokenUrl;
     @Value("${kakao.userinfo.url}")
     private String kakaoUserInfoUrl;
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucket;
+
 
     @Override
     public ResponseEntity<?> signIn(String authorizeCode, String type) {
@@ -203,6 +203,29 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseEntity<?> generalSignIn(RequestGeneralSignDto requestGeneralSignDto, String type) {
         return authDAO.generalLogin(requestGeneralSignDto,type);
+    }
+
+    @Override
+    public ResponseEntity<?> changeProfile(MultipartFile file, String nickname) {
+
+        log.info("[file-upload] file : {}",file.getOriginalFilename());
+        try{
+            String filename = file.getOriginalFilename();
+            ObjectMetadata data = new ObjectMetadata();
+
+            data.setContentType(file.getContentType()); // 파일 타입
+            data.setContentLength(file.getSize()); // 파일 사이즈
+
+            amazonS3Client.putObject(bucket, filename, file.getInputStream(), data);
+            String url = amazonS3Client.getUrl(bucket, file.getOriginalFilename()).toString();
+
+            return authDAO.changeUserProfile(nickname, url);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
     }
 
     private RequestSaveUserDto getKakaoUserInfo(String accessToken){

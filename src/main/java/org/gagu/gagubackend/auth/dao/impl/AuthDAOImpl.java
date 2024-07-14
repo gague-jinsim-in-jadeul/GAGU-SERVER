@@ -100,6 +100,24 @@ public class AuthDAOImpl implements AuthDAO {
         }
     }
 
+    @Override
+    public ResponseEntity<?> changeUserProfile(String nickname, String fileUrl) {
+        log.info("[change profile] file url : {}", fileUrl);
+        User user = userRepository.findByNickName(nickname);
+        if(!(user == null)){
+            String profileUrl = user.getProfileUrl();
+            if(profileUrl.equals(fileUrl)){
+                return ResponseEntity.status(ResultCode.DUPLICATE_PROFILE.getCode()).body(ResultCode.DUPLICATE_PROFILE.getMessage());
+            }else{
+
+                user.setProfileUrl(fileUrl);
+                userRepository.save(user);
+                return ResponseEntity.ok("정상적으로 프로필이 변경되었습니다.");
+            }
+        }
+        return ResponseEntity.status(ResultCode.NOT_FOUND_USER.getCode()).body(ResultCode.NOT_FOUND_USER.getMessage());
+    }
+
     private CommonResponse signUp(RequestSaveUserDto requestSaveUserDto){
         log.info("[auth] sign up");
 

@@ -22,4 +22,5 @@ public interface AuthDAO {
      * @return
      */
     ResponseEntity<?> generalLogin(RequestGeneralSignDto requestGeneralSignDto, String type);
+    ResponseEntity<?> changeUserProfile(String nickname, String fileUrl);
 }
