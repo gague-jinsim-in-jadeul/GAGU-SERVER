@@ -46,4 +46,11 @@ public interface AuthService {
      * @return
      */
     ResponseEntity<?> changeProfile(MultipartFile file, String nickname);
+
+    /**
+     * 사용자 프로필 내용을 반환
+     * @param nickname
+     * @return
+     */
+    ResponseEntity<?> getProfile(String nickname);
 }
