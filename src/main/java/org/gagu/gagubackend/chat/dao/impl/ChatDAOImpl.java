@@ -9,6 +9,7 @@ import org.gagu.gagubackend.chat.domain.ChatRoomMember;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
+import org.gagu.gagubackend.chat.dto.response.ResponseMyChatRoomsDto;
 import org.gagu.gagubackend.chat.repository.ChatContentsRepository;
 import org.gagu.gagubackend.chat.repository.ChatRoomMemberRepository;
 import org.gagu.gagubackend.chat.repository.ChatRoomRepository;
@@ -19,6 +20,7 @@ import org.gagu.gagubackend.user.domain.User;
 import org.gagu.gagubackend.user.dto.request.RequestUserInfoDto;
 import org.gagu.gagubackend.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -126,7 +129,6 @@ public class ChatDAOImpl implements ChatDAO {
     @Override
     public Page<ChatContents> getChatContents(String nickname, Pageable pageable, Long roomNumber) {
         log.info("[chat] get chat contents room number : {}",roomNumber);
-        log.info("[chat] pageable : {}",pageable.toString());
         User user = userRepository.findByNickName(nickname);
         Optional<ChatRoom> chatRoomList = chatRoomRepository.findById(roomNumber);
         if(!chatRoomList.isEmpty()){
@@ -140,6 +142,40 @@ public class ChatDAOImpl implements ChatDAO {
             throw new ChatRoomNotFoundException("채팅방이 존재하지 않습니다.");
         }
     }
+
+    @Override
+    public Page<ResponseMyChatRoomsDto> getChatMyRooms(String nickname, Pageable pageable) {
+        log.info("[chat] get" + "{}" + "chat rooms",nickname);
+        User user = userRepository.findByNickName(nickname);
+        if(!(user == null)){
+            List<ChatRoomMember> chatRoomMemberList = chatRoomMemberRepository.findAllByMember(user);
+            if(chatRoomMemberList.isEmpty()){
+                    return Page.empty(pageable);
+                }
+            log.info("[chat] chatroom is exist!");
+            List<Long> roomIds = chatRoomMemberList.stream().map(chatRoomMember -> chatRoomMember.getRoomId().getId())
+                    .collect(Collectors.toList());
+            log.info("[chat] collect my chat rooms..");
+
+            Page<ChatRoom> chatRooms = chatRoomRepository.findByIdIn(roomIds, pageable);
+
+            List<ResponseMyChatRoomsDto> chatRoomsDtoList = chatRooms.stream()
+                    .map(chatRoom -> {
+                        ResponseMyChatRoomsDto dto = new ResponseMyChatRoomsDto();
+                        dto.setId(chatRoom.getId());
+                        dto.setRoomName(chatRoom.getRoomName());
+                        dto.setUpdateAt(chatRoom.getUpdatedAt());
+                        return dto;
+                    }).collect(Collectors.toList());
+
+            return new PageImpl<>(chatRoomsDtoList, pageable, chatRooms.getTotalElements());
+
+            }else{
+            log.error("[chat] not found user");
+            throw new NotMemberException();
+        }
+
+        }
 
 
     private boolean checkUserExist(String userEmail, String userNickname){

@@ -1,5 +1,7 @@
 package org.gagu.gagubackend.chat.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.gagu.gagubackend.global.domain.BaseTimeEntity;
