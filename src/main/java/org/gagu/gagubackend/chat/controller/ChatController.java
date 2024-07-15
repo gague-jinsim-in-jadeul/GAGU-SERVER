@@ -80,6 +80,18 @@ public class ChatController {
 
         return ResponseEntity.ok(chatService.getChatContents(nickName,pageable,roomNumber));
     }
+    @Operation(summary = "내가 속한 채팅방 조회", description = "가구 의뢰 시 생성된 채팅방을 조회 후 반환합니다.")
+    @GetMapping("/my-rooms")
+    public ResponseEntity<?> getMyChatRooms(HttpServletRequest request,
+                                            @RequestParam int page){
+        String token = jwtTokenProvider.extractToken(request);
+        String nickName = jwtTokenProvider.getUserNickName(token);
+
+        Pageable pageable = PageRequest.of(page, 10, Sort.Direction.DESC,"createdAt");
+
+        return ResponseEntity.ok(chatService.getMyChatRooms(nickName, pageable));
+    }
+
     @MessageMapping("/gagu-chat/{roomNumber}") // mapping ex)/pub/gagu/chat
     public void sendMessage(RequestChatContentsDto message,
                                          SimpMessageHeaderAccessor accessor,

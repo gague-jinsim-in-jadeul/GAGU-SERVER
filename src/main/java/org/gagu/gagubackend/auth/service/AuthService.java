@@ -19,7 +19,7 @@ public interface AuthService {
      * 소셜 로그인 api 사용 x
      * @param requestOauthSignDto
      * @param type
-     * @return
+     * @return jwt
      */
     ResponseEntity<?> normalSignIn(RequestOauthSignDto requestOauthSignDto, String type);
 
@@ -27,7 +27,7 @@ public interface AuthService {
      * 공방 관계자 회원가입
      * @param requestGeneralSignUpDto
      * @param type
-     * @return
+     * @return jwt
      */
     ResponseEntity<?> generalSingUp(RequestGeneralSignUpDto requestGeneralSignUpDto, String type);
 
@@ -35,7 +35,7 @@ public interface AuthService {
      * 공방 관계자 로그인
      * @param requestGeneralSignDto
      * @param type
-     * @return
+     * @return jwt
      */
     ResponseEntity<?> generalSignIn(RequestGeneralSignDto requestGeneralSignDto, String type);
 
@@ -43,14 +43,15 @@ public interface AuthService {
      * 회원가입 이후 프로필 이미지 변경
      * @param file
      * @param nickname
-     * @return
+     * @return 상태반환
      */
     ResponseEntity<?> changeProfile(MultipartFile file, String nickname);
 
     /**
      * 사용자 프로필 내용을 반환
      * @param nickname
-     * @return
+     * @return info
      */
     ResponseEntity<?> getProfile(String nickname);
+
 }

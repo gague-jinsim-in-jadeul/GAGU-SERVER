@@ -3,9 +3,11 @@ package org.gagu.gagubackend.chat.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.chat.dao.ChatDAO;
 import org.gagu.gagubackend.chat.domain.ChatContents;
+import org.gagu.gagubackend.chat.domain.ChatRoom;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
+import org.gagu.gagubackend.chat.dto.response.ResponseMyChatRoomsDto;
 import org.gagu.gagubackend.chat.service.ChatService;
 import org.gagu.gagubackend.user.dto.request.RequestUserInfoDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,5 +60,10 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public Page<ChatContents> getChatContents(String nickname, Pageable pageable, Long roomNumber) {
         return chatDAO.getChatContents(nickname,pageable,roomNumber);
+    }
+
+    @Override
+    public Page<ResponseMyChatRoomsDto> getMyChatRooms(String nickname, Pageable pageable) {
+        return chatDAO.getChatMyRooms(nickname, pageable);
     }
 }
