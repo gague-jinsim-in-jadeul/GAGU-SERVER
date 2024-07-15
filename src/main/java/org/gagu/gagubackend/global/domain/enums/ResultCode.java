@@ -10,9 +10,11 @@ public enum ResultCode {
     PASSWORD_NOT_MATCH(403, "비밀번호 불일치"),
     DELETED_USER(401, "탈퇴 유저"),
     EXPIRED_TOKEN(401, "토큰 유효 기간 만료"),
-    DUPLICATION_NICKNAME(400, "이미 존재하는 닉네임입니다."),
+    DUPLICATE_NICKNAME(400, "이미 존재하는 닉네임입니다."),
+    DUPLICATE_USER(400,"이미 계정이 존재합니다"),
     DUPLICATE_PROFILE(400,"이미 같은 프로필입니다."),
-    DUPLICATION_EMAIL(400, "이미 존재하는 이메일입니다."),
+    NOT_FOUND_TOKEN(401,"토큰이 비어있습니다."),
+    DUPLICATE_EMAIL(400, "이미 존재하는 이메일입니다."),
     NOT_FOUND_USER(401, "사용자를 찾을 수 없습니다."),
     NOT_FOUND_CHATROOM(401,"채팅방을 찾을 수 없습니다.");
 

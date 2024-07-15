@@ -161,7 +161,7 @@ public class JwtTokenProvider {
         try{
             Jws<Claims> claimsJws = Jwts.parserBuilder().setSigningKey(key.getBytes()).build().parseClaimsJws(token);
             log.info("JwtTokenProvider / validateToken(): 토큰 유효 체크 완료");
-            return !claimsJws.getBody().getExpiration().before(new Date());
+            return !claimsJws.getBody().getExpiration().before(new Date()); // 오늘 날짜가 유효기간 이전인가? true 유효성 o
         }catch (Exception e){
             log.error("Token validation error",e);
             log.info("[JwtTokenProvider] token is invalid");
