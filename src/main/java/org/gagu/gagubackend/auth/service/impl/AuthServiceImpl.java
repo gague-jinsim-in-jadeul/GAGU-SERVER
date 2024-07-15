@@ -194,6 +194,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(requestGeneralSignUpDto.getEmail())
                 .profileUrl(requestGeneralSignUpDto.getProfileUrl())
                 .loginType(LoginType.GENERAL.toString())
+                .profileMessage(requestGeneralSignUpDto.getProfileMessage())
                 .useAble(true)
                 .build();
 
@@ -226,6 +227,11 @@ public class AuthServiceImpl implements AuthService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
+    }
+
+    @Override
+    public ResponseEntity<?> getProfile(String nickname) {
+        return authDAO.checkUserProfile(nickname);
     }
 
     private RequestSaveUserDto getKakaoUserInfo(String accessToken){

@@ -16,5 +16,6 @@ public class RequestSaveUserDto {
     private String email;
     private String profileUrl;
     private String loginType;
+    private String profileMessage;
     private boolean useAble;
 }

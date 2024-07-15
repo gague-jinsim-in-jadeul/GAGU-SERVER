@@ -54,10 +54,10 @@ public class SecurityConfiguration {
                         .accessDeniedHandler(jwtAccessDeniedHandler)
                 )
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/api/v1/profile/**").permitAll() // 프로필 업로드
+                        .requestMatchers("/api/v1/profile/**").hasAnyRole("USER","WORKSHOP") // 프로필 업로드
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(PATTERNS).permitAll()
-                        .requestMatchers("/chat/**").permitAll() // 공방 관계자 미적용
+                        .requestMatchers("/chat/**").hasAnyRole("USER","WORKSHOP") // 공방 관계자 미적용
                         .requestMatchers("/api/v1/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )

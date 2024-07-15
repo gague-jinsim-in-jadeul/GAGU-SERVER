@@ -1,7 +1,6 @@
 package org.gagu.gagubackend.auth.dao;
 
 import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignDto;
-import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignUpDto;
 import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
 import org.springframework.http.ResponseEntity;
 
@@ -22,5 +21,19 @@ public interface AuthDAO {
      * @return
      */
     ResponseEntity<?> generalLogin(RequestGeneralSignDto requestGeneralSignDto, String type);
+
+    /**
+     * 유저 프로필 사진을 변경
+     * @param nickname
+     * @param fileUrl
+     * @return
+     */
     ResponseEntity<?> changeUserProfile(String nickname, String fileUrl);
+
+    /**
+     * 사용자 프로필 정보를 반환
+     * @param nickname
+     * @return
+     */
+    ResponseEntity<?> checkUserProfile(String nickname);
 }
