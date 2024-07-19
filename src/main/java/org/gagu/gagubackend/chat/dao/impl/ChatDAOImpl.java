@@ -40,7 +40,7 @@ public class ChatDAOImpl implements ChatDAO {
     private final ChatContentsRepository chatContentsRepository;
     @Override
     public ResponseEntity<?> createChatRoom(RequestUserInfoDto userInfoDto, RequestCreateChatRoomDto requestCreateChatRoomDto) {
-        log.info("[chat] crate chat room");
+        log.info("[chat] create chat room");
         String userEmail = userInfoDto.getUserEmail();
         String userNickname = userInfoDto.getUserNickname();
         String workShopEmail = requestCreateChatRoomDto.getSellerEmail();
@@ -49,7 +49,17 @@ public class ChatDAOImpl implements ChatDAO {
         if (checkUserExist(userEmail,userNickname) && checkWorkshopExist(workShopEmail,workShopName)){
             User buyer = userRepository.findByEmailAndNickName(userEmail,userNickname);
             User workshop = userRepository.findByEmailAndNickName(workShopEmail,workShopName);
+            log.info("[chat] user is exist!");
+
+            log.info("[chat] is check chatroom exist....");
+            if(areUsersInSameRoom(buyer, workshop)){
+                log.warn("[chat] chatroom is already exist!");
+                return ResultCode.DUPLICATE_CHATROOM.toResponseEntity();
+            }
+
             String chatRoomName = createChatRoomName(userNickname,workShopName);
+
+
 
             ChatRoom newChatRoom = new ChatRoom();
             newChatRoom.setRoomName(chatRoomName);
@@ -73,7 +83,8 @@ public class ChatDAOImpl implements ChatDAO {
 
             return ResponseEntity.status(ResultCode.OK.getCode()).body("성공적으로 채팅방을 생성하였습니다.");
         }else{
-            return ResponseEntity.status(ResultCode.FAIL.getCode()).body(ResultCode.NOT_FOUND_USER.getMessage());
+            log.warn("[chat] user is not found!");
+            return ResultCode.NOT_FOUND_USER.toResponseEntity();
         }
     }
 
@@ -144,7 +155,7 @@ public class ChatDAOImpl implements ChatDAO {
     }
 
     @Override
-    public Page<ResponseMyChatRoomsDto> getChatMyRooms(String nickname, Pageable pageable) {
+    public Page<ResponseMyChatRoomsDto> getMyRooms(String nickname, Pageable pageable) {
         log.info("[chat] get" + "{}" + "chat rooms",nickname);
         User user = userRepository.findByNickName(nickname);
         if(!(user == null)){
@@ -194,5 +205,8 @@ public class ChatDAOImpl implements ChatDAO {
     }
     public boolean checkMember(ChatRoom roomId, User member){
         return chatRoomMemberRepository.existsChatRoomMemberByRoomIdAndMember(roomId,member);
+    }
+    public boolean areUsersInSameRoom(User user, User workshop) {
+        return chatRoomMemberRepository.existsChatRoomByMembers(user, workshop);
     }
 }

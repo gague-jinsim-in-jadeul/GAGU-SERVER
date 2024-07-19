@@ -64,6 +64,6 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public Page<ResponseMyChatRoomsDto> getMyChatRooms(String nickname, Pageable pageable) {
-        return chatDAO.getChatMyRooms(nickname, pageable);
+        return chatDAO.getMyRooms(nickname, pageable);
     }
 }

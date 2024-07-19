@@ -44,6 +44,12 @@ public interface ChatDAO {
      */
     Page<ChatContents> getChatContents(String nickname, Pageable pageable, Long roomNumber);
 
-    Page<ResponseMyChatRoomsDto> getChatMyRooms(String nickname, Pageable pageable);
+    /**
+     * 사용자가 속한 채팅방을 조회
+     * @param nickname
+     * @param pageable
+     * @return
+     */
+    Page<ResponseMyChatRoomsDto> getMyRooms(String nickname, Pageable pageable);
 
 }
