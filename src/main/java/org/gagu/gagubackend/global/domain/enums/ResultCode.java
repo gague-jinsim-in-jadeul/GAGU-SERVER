@@ -1,6 +1,7 @@
 package org.gagu.gagubackend.global.domain.enums;
 
 import lombok.Getter;
+import org.springframework.http.ResponseEntity;
 
 @Getter
 public enum ResultCode {
@@ -12,6 +13,7 @@ public enum ResultCode {
     EXPIRED_TOKEN(401, "토큰 유효 기간 만료"),
     DUPLICATE_NICKNAME(400, "이미 존재하는 닉네임입니다."),
     DUPLICATE_USER(400,"이미 계정이 존재합니다"),
+    DUPLICATE_CHATROOM(400,"이미 채팅방이 존재합니다."),
     DUPLICATE_PROFILE(400,"이미 같은 프로필입니다."),
     NOT_FOUND_TOKEN(401,"토큰이 비어있습니다."),
     DUPLICATE_EMAIL(400, "이미 존재하는 이메일입니다."),
@@ -26,12 +28,7 @@ public enum ResultCode {
         this.message = message;
     }
 
-    public static ResultCode resolve(int code) {
-        for (ResultCode result : values()) {
-            if (result.getCode() == code) {
-                return result;
-            }
-        }
-        return null;
+    public ResponseEntity<String> toResponseEntity(){
+        return ResponseEntity.status(this.code).body(this.message);
     }
 }
