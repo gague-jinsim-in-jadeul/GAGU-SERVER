@@ -14,6 +14,8 @@ public enum ResultCode {
     DUPLICATE_NICKNAME(400, "이미 존재하는 닉네임입니다."),
     DUPLICATE_USER(400,"이미 계정이 존재합니다"),
     DUPLICATE_CHATROOM(400,"이미 채팅방이 존재합니다."),
+    BAD_REQUEST(400, "요청값이 잘못 됐습니다."),
+    NO_AUTHORIZE_NUMBER(400, "인증번호가 누락됐습니다."),
     DUPLICATE_PROFILE(400,"이미 같은 프로필입니다."),
     NOT_FOUND_TOKEN(401,"토큰이 비어있습니다."),
     DUPLICATE_EMAIL(400, "이미 존재하는 이메일입니다."),
