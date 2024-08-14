@@ -1,9 +1,6 @@
 package org.gagu.gagubackend.auth.service;
 
-import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignDto;
-import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignUpDto;
-import org.gagu.gagubackend.auth.dto.request.RequestOauthSignDto;
-import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
+import org.gagu.gagubackend.auth.dto.request.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -53,5 +50,12 @@ public interface AuthService {
      * @return info
      */
     ResponseEntity<?> getProfile(String nickname);
+
+    /**
+     * 사용자 주소를 저장 후 상태 반환
+     * @param requestAddressDto
+     * @return status, body
+     */
+    ResponseEntity<?> saveAddress(RequestAddressDto requestAddressDto, String nickname);
 
 }

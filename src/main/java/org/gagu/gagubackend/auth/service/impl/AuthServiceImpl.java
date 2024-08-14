@@ -7,10 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.dao.AuthDAO;
-import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignDto;
-import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignUpDto;
-import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
-import org.gagu.gagubackend.auth.dto.request.RequestOauthSignDto;
+import org.gagu.gagubackend.auth.dto.request.*;
 import org.gagu.gagubackend.auth.service.AuthService;
 import org.gagu.gagubackend.global.domain.CommonResponse;
 import org.gagu.gagubackend.global.domain.enums.LoginType;
@@ -232,6 +229,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseEntity<?> getProfile(String nickname) {
         return authDAO.checkUserProfile(nickname);
+    }
+
+    @Override
+    public ResponseEntity<?> saveAddress(RequestAddressDto requestAddressDto, String nickname) {
+        return authDAO.saveUserAddress(requestAddressDto, nickname);
     }
 
     private RequestSaveUserDto getKakaoUserInfo(String accessToken){
