@@ -25,6 +25,7 @@ public class RedisConfig {
     @Bean
     public RedisConnectionFactory redisConnectionFactory(){
         log.info("[redis-server] connecting redis....");
+        log.info("[redis-server] host : {}, port : {}",host, port);
         return new LettuceConnectionFactory(host, port);
     }
 
