@@ -1,5 +1,6 @@
 package org.gagu.gagubackend.auth.dao;
 
+import org.gagu.gagubackend.auth.dto.request.RequestAddressDto;
 import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignDto;
 import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
 import org.springframework.http.ResponseEntity;
@@ -36,4 +37,11 @@ public interface AuthDAO {
      * @return
      */
     ResponseEntity<?> checkUserProfile(String nickname);
+
+    /**
+     * 사용자 주소를 저장 후 상태 반환
+     * @param requestAddressDto
+     * @return status, body
+     */
+    ResponseEntity<?> saveUserAddress(RequestAddressDto requestAddressDto, String nickname);
 }

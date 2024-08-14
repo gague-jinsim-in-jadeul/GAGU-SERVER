@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.gagu.gagubackend.auth.dto.request.RequestAddressDto;
 import org.gagu.gagubackend.auth.service.AuthService;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
 import org.gagu.gagubackend.global.security.JwtTokenProvider;
@@ -44,5 +45,20 @@ public class ProfileController {
         }
         String nickname = jwtTokenProvider.getUserNickName(token);
         return authService.getProfile(nickname);
+    }
+
+    @Operation(summary = "사용자 주소 저장", description = "사용자 주소 입력 시 저장합니다.")
+    @PostMapping("/address")
+    public ResponseEntity<?> updateAddress(@RequestBody RequestAddressDto requestAddressDto, HttpServletRequest request){
+        String token = jwtTokenProvider.extractToken(request);
+        if(token.isEmpty()){
+            return ResultCode.NOT_FOUND_TOKEN.toResponseEntity();
+        }
+        if(requestAddressDto.getAddress().isEmpty()){
+            return ResultCode.BAD_REQUEST.toResponseEntity();
+        }
+        String nickName = jwtTokenProvider.getUserNickName(token);
+
+        return authService.saveAddress(requestAddressDto, nickName);
     }
 }

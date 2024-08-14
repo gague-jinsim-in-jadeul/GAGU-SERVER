@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.dao.AuthDAO;
 import org.gagu.gagubackend.auth.dao.NicknameDAO;
+import org.gagu.gagubackend.auth.dto.request.RequestAddressDto;
 import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignDto;
 import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
 import org.gagu.gagubackend.auth.dto.response.ResponseAuthDto;
@@ -227,6 +228,27 @@ public class AuthDAOImpl implements AuthDAO {
         }
         return null;
     }
+
+    @Override
+    public ResponseEntity<?> saveUserAddress(RequestAddressDto requestAddressDto, String nickname) {
+        log.info("[auth] saving {}'s address...",nickname);
+        User user = userRepository.findByNickName(nickname);
+        if(user == null){
+            return ResultCode.NOT_FOUND_USER.toResponseEntity();
+        }else{
+            try{
+                user.setAddress(requestAddressDto.getAddress());
+                userRepository.save(user);
+                log.info("[auth] successfully save address!");
+                return ResultCode.OK.toResponseEntity();
+            }catch (Exception e){
+                log.error("[auth] fail to save address!");
+                e.printStackTrace();
+                return ResultCode.FAIL.toResponseEntity();
+            }
+        }
+    }
+
     private boolean checkUserExist(String email, String loginType){
         return userRepository.existsByEmailAndLoginType(email, loginType);
     }
