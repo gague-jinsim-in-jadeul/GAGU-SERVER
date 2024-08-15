@@ -52,14 +52,14 @@ public class ChatDAOImpl implements ChatDAO {
             log.info("[chat] user is exist!");
 
             log.info("[chat] is check chatroom exist....");
-            if(areUsersInSameRoom(buyer, workshop)){
+            if(areUsersInSameRoom(buyer,workshop)){
                 log.warn("[chat] chatroom is already exist!");
-                return ResultCode.DUPLICATE_CHATROOM.toResponseEntity();
+                Optional<ChatRoomMember> chatRoomMember = chatRoomMemberRepository.findChatRoomMemberByMembers(buyer,workshop);
+                Long roomId = chatRoomMember.get().getRoomId().getId();
+                return ResponseEntity.status(ResultCode.DUPLICATE_CHATROOM.getCode()).body(roomId);
             }
 
             String chatRoomName = createChatRoomName(userNickname,workShopName);
-
-
 
             ChatRoom newChatRoom = new ChatRoom();
             newChatRoom.setRoomName(chatRoomName);
@@ -81,7 +81,7 @@ public class ChatDAOImpl implements ChatDAO {
 
             log.info("[chat] create chatroom success");
 
-            return ResponseEntity.status(ResultCode.OK.getCode()).body("성공적으로 채팅방을 생성하였습니다.");
+            return ResponseEntity.status(ResultCode.OK.getCode()).body(newChatRoom.getId());
         }else{
             log.warn("[chat] user is not found!");
             return ResultCode.NOT_FOUND_USER.toResponseEntity();

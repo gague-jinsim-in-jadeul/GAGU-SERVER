@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, Long> {
     boolean existsChatRoomMemberByRoomId(ChatRoom chatRoom);
@@ -18,4 +19,9 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
             "JOIN ChatRoomMember c2 ON c1.roomId = c2.roomId " +
             "WHERE c1.member = :userA AND c2.member = :userB")
     boolean existsChatRoomByMembers(@Param("userA") User userA, @Param("userB") User userB);
+
+    @Query("SELECT c FROM ChatRoomMember c " +
+            "WHERE c.member = :userA AND c.roomId IN " +
+            "(SELECT cm.roomId FROM ChatRoomMember cm WHERE cm.member = :userB)")
+    Optional<ChatRoomMember> findChatRoomMemberByMembers(@Param("userA") User userA, @Param("userB") User userB);
 }
