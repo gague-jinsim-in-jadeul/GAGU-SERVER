@@ -13,4 +13,5 @@ public class ResponseProfileDto {
     private String email;
     private String loginTypeLogo;
     private String profileUrl;
+    private String address;
 }

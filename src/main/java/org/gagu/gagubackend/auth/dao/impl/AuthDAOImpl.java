@@ -214,6 +214,7 @@ public class AuthDAOImpl implements AuthDAO {
             responseProfileDto.setProfileUrl(user.getProfileUrl());
             responseProfileDto.setName(user.getName());
             responseProfileDto.setEmail(user.getEmail());
+            responseProfileDto.setAddress(user.getAddress());
             switch (user.getLoginType()){
                 case "GOOGLE":
                     responseProfileDto.setLoginTypeLogo(googleLoginLogo);
