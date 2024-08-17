@@ -11,7 +11,6 @@ import org.gagu.gagubackend.global.domain.CommonResponse;
 @Builder
 public class ResponseAuthDto {
     private String accessToken;
-    private String refreshToken;
     private String name;
     private CommonResponse<?> status;
 }

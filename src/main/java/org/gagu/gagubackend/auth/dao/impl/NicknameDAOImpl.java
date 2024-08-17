@@ -20,8 +20,10 @@ public class NicknameDAOImpl implements NicknameDAO {
         String nickname;
 
         do {
+
             int number = counter.getAndIncrement();
             nickname = "GAGU#" + number;
+            log.info("[create nickname] creating nickname.... nickname : {}", nickname);
         } while(checkNickname(nickname));
         return nickname;
     }

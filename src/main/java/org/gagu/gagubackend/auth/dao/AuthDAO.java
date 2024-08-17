@@ -7,12 +7,12 @@ import org.springframework.http.ResponseEntity;
 
 public interface AuthDAO {
     /**
-     * 유저 DB 조회 후 token 생성
-     * 닉네임 중복 여부 확인 후 저장
+     * 유저 DB 조회 후 token 생성  / 닉네임 중복 여부 확인 후 저장
+     * 회원가입
      * @param requestSaveUserDto
      * @return JWT
      */
-    ResponseEntity<?> login(RequestSaveUserDto requestSaveUserDto);
+    ResponseEntity<?> generalLogin(RequestSaveUserDto requestSaveUserDto);
 
     /**
      * 유저 DB 조회 후 패스워드 확인
@@ -21,7 +21,7 @@ public interface AuthDAO {
      * @param type
      * @return
      */
-    ResponseEntity<?> generalLogin(RequestGeneralSignDto requestGeneralSignDto, String type);
+    ResponseEntity<?> workshopLogin(RequestGeneralSignDto requestGeneralSignDto, String type);
 
     /**
      * 유저 프로필 사진을 변경
@@ -44,4 +44,12 @@ public interface AuthDAO {
      * @return status, body
      */
     ResponseEntity<?> saveUserAddress(RequestAddressDto requestAddressDto, String nickname);
+
+    /**
+     * refresh 토큰 삭제
+     * redis storage {access token : logout} save
+     * @param token
+     * @return
+     */
+    ResponseEntity<?> deleteToken(String token);
 }
