@@ -58,4 +58,11 @@ public interface AuthService {
      */
     ResponseEntity<?> saveAddress(RequestAddressDto requestAddressDto, String nickname);
 
+    /**
+     * 사용자 로그아웃
+     * @param token
+     * @return
+     */
+    ResponseEntity<?> logOut(String token);
+
 }

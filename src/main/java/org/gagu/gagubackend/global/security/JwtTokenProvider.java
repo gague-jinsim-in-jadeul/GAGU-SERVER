@@ -132,6 +132,24 @@ public class JwtTokenProvider {
         return null;
     }
 
+    public Date getExpireTime(String token){
+        log.info("[JwtTokenProvider] check expire token");
+        token = token.replace("Bearer ","").trim();
+        try{
+            Claims info = Jwts.parserBuilder()
+                    .setSigningKey(key.getBytes())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            log.info("[JwtTokenProvider] jwt expire time : {}", info.getExpiration());
+            return info.getExpiration();
+        }catch (Exception e){
+            log.error("[JwtTokenProvider] error occurred extracting expire time..");
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public String refreshToken(String refreshToken, String nickName,String email){
         log.info("[JwtTokenProvider] refresh access token");
 
