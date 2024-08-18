@@ -77,6 +77,7 @@ public class AuthDAOImpl implements AuthDAO {
                     log.info("[sign up] save user success!");
 
                     String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName());
+                    log.info("[auth] refresh token : {}", refreshToken);
 
                     redisConfig.redisTemplate().opsForValue().set(user.getNickName(),
                             refreshToken,
@@ -106,6 +107,7 @@ public class AuthDAOImpl implements AuthDAO {
                     log.info("[social auth] user is available");
 
                     String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName());
+                    log.info("[social auth] refresh token : {}", refreshToken);
 
                     redisConfig.redisTemplate().opsForValue().set(user.getNickName(),
                             refreshToken,
@@ -114,7 +116,7 @@ public class AuthDAOImpl implements AuthDAO {
                     ); // put {nickname : token} redis
                     log.info("[social auth] put token to redis success!");
 
-                    log.info("[social auth] success to socail login!");
+                    log.info("[social auth] success to social login!");
 
                     return ResponseEntity.status(ResultCode.OK.getCode())
                             .body(ResponseAuthDto.builder()
@@ -150,6 +152,8 @@ public class AuthDAOImpl implements AuthDAO {
 
                     String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName());
 
+                    log.info("[social auth] refresh token : {}", refreshToken);
+
                     redisConfig.redisTemplate().opsForValue().set(user.getNickName(),
                             refreshToken,
                             jwtTokenProvider.getExpireTime(refreshToken).getTime() - System.currentTimeMillis(),
@@ -176,13 +180,14 @@ public class AuthDAOImpl implements AuthDAO {
         List<User> userList = userRepository.findAllByEmailAndLoginType(requestGeneralSignDto.getEmail(), type);
 
         if(userList.size() > 1){ // 공방 관계자 중 동일한 이메일, 로그인 타입이 있을 때
-            log.info("[auth] duplicate email.. check user password..");
+            log.info("[workshop auth] duplicate email.. check user password..");
             for(User tmp : userList){
                 String password = tmp.getPassword();
                 if (encoder.matches(requestGeneralSignDto.getPassword(),password)){ // 패스워드, 이메일 일치하는 계정 찾았을 때
-                    log.info("[auth] check user password success!");
+                    log.info("[workshop auth] check user password success!");
 
                     String refreshToken = jwtTokenProvider.createRefreshToken(tmp.getEmail(), tmp.getNickName());
+                    log.info("[workshop auth] refresh token : {}", refreshToken);
 
                     redisConfig.redisTemplate().opsForValue().set(tmp.getNickName(),
                             refreshToken,
@@ -190,7 +195,7 @@ public class AuthDAOImpl implements AuthDAO {
                             TimeUnit.MILLISECONDS
                     ); // put {nickname : token} redis
 
-                    log.info("[auth] put token to redis success!");
+                    log.info("[workshop auth] put token to redis success!");
 
                     return ResponseEntity.status(ResultCode.OK.getCode())
                             .body(ResponseAuthDto.builder()
@@ -200,18 +205,20 @@ public class AuthDAOImpl implements AuthDAO {
                                     .build());
                 }
             } // 비밀번호가 일치하지 않을 때
-            log.error("[auth] password is unmatched");
+            log.error("[workshop auth] password is unmatched");
             return ResultCode.PASSWORD_NOT_MATCH.toResponseEntity();
 
         }else{ // 공방관계자 계정이 유일 할 때
-            log.info("[auth] no duplicate email! check user password");
+            log.info("[workshop auth] no duplicate email! check user password");
             User user = userList.get(0);
             String password = user.getPassword();
 
             if(encoder.matches(requestGeneralSignDto.getPassword(), password)){
-                log.info("[auth] check user password success!");
+                log.info("[workshop auth] check user password success!");
 
                 String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName());
+
+                log.info("[workshop auth] refresh token : {}", refreshToken);
 
                 redisConfig.redisTemplate().opsForValue().set(user.getNickName(),
                         refreshToken,
@@ -219,7 +226,7 @@ public class AuthDAOImpl implements AuthDAO {
                         TimeUnit.MILLISECONDS
                 ); // put {nickname : token} redis
 
-                log.info("[auth] put token to redis success!");
+                log.info("[workshop auth] put token to redis success!");
 
                 return ResponseEntity.status(ResultCode.OK.getCode())
                         .body(ResponseAuthDto.builder()
