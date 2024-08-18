@@ -87,7 +87,7 @@ public class AuthServiceImpl implements AuthService {
 
                     log.info("[kakao login] dto : {}", requestSignUpDto.toString());
 
-                    return authDAO.login(requestSignUpDto);
+                    return authDAO.generalLogin(requestSignUpDto);
 
                 }catch (Exception e){
                     log.warn("[kakao login] fail authorizecode issued");
@@ -123,7 +123,7 @@ public class AuthServiceImpl implements AuthService {
                     log.warn("[google login] get user info");
                     RequestSaveUserDto requestSignUpDto = getGoogleUserInfo(accessToken);
 
-                    return authDAO.login(requestSignUpDto);
+                    return authDAO.generalLogin(requestSignUpDto);
                 }catch (Exception e){
                     e.printStackTrace();
                     log.warn("[google login] fail to issue authorizecode");
@@ -153,7 +153,7 @@ public class AuthServiceImpl implements AuthService {
 
                     log.info("[kakao login] dto : {}", requestSignUpDto.toString());
 
-                    return authDAO.login(requestSignUpDto);
+                    return authDAO.generalLogin(requestSignUpDto);
 
             case "google":
                 log.info("[google login] google sign");
@@ -171,7 +171,7 @@ public class AuthServiceImpl implements AuthService {
 
                 log.info("[google login] dto : {}", requestSignUpDto.toString());
 
-                return authDAO.login(requestSignUpDto);
+                return authDAO.generalLogin(requestSignUpDto);
         }
         return null;
     }
@@ -195,12 +195,12 @@ public class AuthServiceImpl implements AuthService {
                 .useAble(true)
                 .build();
 
-        return authDAO.login(requestSaveUserDto);
+        return authDAO.generalLogin(requestSaveUserDto);
     }
 
     @Override
     public ResponseEntity<?> generalSignIn(RequestGeneralSignDto requestGeneralSignDto, String type) {
-        return authDAO.generalLogin(requestGeneralSignDto,type);
+        return authDAO.workshopLogin(requestGeneralSignDto,type);
     }
 
     @Override
@@ -234,6 +234,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseEntity<?> saveAddress(RequestAddressDto requestAddressDto, String nickname) {
         return authDAO.saveUserAddress(requestAddressDto, nickname);
+    }
+    @Override
+    public ResponseEntity<?> logOut(String token) {
+        return authDAO.deleteToken(token);
     }
 
     private RequestSaveUserDto getKakaoUserInfo(String accessToken){

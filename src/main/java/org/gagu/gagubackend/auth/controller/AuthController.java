@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.nurigo.sdk.NurigoApp;
@@ -16,6 +17,7 @@ import org.gagu.gagubackend.auth.dto.request.*;
 import org.gagu.gagubackend.auth.service.AuthService;
 import org.gagu.gagubackend.global.config.RedisConfig;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
+import org.gagu.gagubackend.global.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +37,7 @@ public class AuthController {
     private final AmazonS3Client amazonS3Client;
     private final RedisConfig redisConfig;
     private DefaultMessageService messageService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -160,6 +163,19 @@ public class AuthController {
         );
 
         return ResponseEntity.ok().body(response.getStatusMessage());
+    }
+
+    @Operation(summary = "사용자 로그인 후 로그아웃 기능입니다.", description = "jwt 만료")
+    @DeleteMapping("/log-out")
+    public ResponseEntity<?> logOut(HttpServletRequest request){
+        String token = jwtTokenProvider.extractToken(request);
+
+        if(token == null){
+            log.error("[logout] token is null!");
+            return ResultCode.TOKEN_IS_NULL.toResponseEntity();
+        }
+        log.info("[logout] token : {}", token);
+        return authService.logOut(token);
     }
 
     private String getRandomNumber() {
