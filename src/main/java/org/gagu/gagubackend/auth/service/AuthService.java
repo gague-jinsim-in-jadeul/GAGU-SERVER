@@ -65,4 +65,6 @@ public interface AuthService {
      */
     ResponseEntity<?> logOut(String token);
 
+    ResponseEntity<?> updateUserInfo(RequestChangeUserInfoDto requestChangeUserInfoDto, String nickname);
+
 }

@@ -55,10 +55,12 @@ public class SecurityConfiguration {
                 )
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/api/v1/profile/**",
-                                "/api/v1/auth/log-out").hasAnyRole("USER","WORKSHOP") // 프로필 업로드
+                                "/api/v1/auth/log-out",
+                                "/api/v1/user-info/reset").hasAnyRole("USER","WORKSHOP") // 프로필 업로드
 
                         .requestMatchers("/api/v1/auth/**",
-                                "/chat/**").permitAll() // 채팅
+                                "/chat/**",
+                                "/api/v1/auth/profile-upload").permitAll() // 채팅
                         .requestMatchers(PATTERNS).permitAll()
 
                         .requestMatchers("/api/v1/**").hasRole("USER")

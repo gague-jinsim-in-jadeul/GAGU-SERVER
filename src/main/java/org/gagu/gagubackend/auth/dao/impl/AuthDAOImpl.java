@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.dao.AuthDAO;
 import org.gagu.gagubackend.auth.dao.NicknameDAO;
 import org.gagu.gagubackend.auth.dto.request.RequestAddressDto;
+import org.gagu.gagubackend.auth.dto.request.RequestChangeUserInfoDto;
 import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignDto;
 import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
 import org.gagu.gagubackend.auth.dto.response.ResponseAuthDto;
@@ -326,6 +327,35 @@ public class AuthDAOImpl implements AuthDAO {
             return ResultCode.OK.toResponseEntity();
         }
         return ResultCode.NOT_IN_STORAGE.toResponseEntity();
+    }
+
+    @Override
+    public ResponseEntity<?> saveUserInfo(RequestChangeUserInfoDto requestChangeUserInfoDto, String nickname) {
+        log.info("[auth] checking user....");
+        User user = userRepository.findByNickName(nickname);
+        if(user == null){
+            log.error("[auth] not found user!");
+            return ResultCode.NOT_FOUND_USER.toResponseEntity();
+        }else{
+            if(!(user.isEnabled())){
+                log.error("[auth] deleted user!");
+                return ResultCode.DELETED_USER.toResponseEntity();
+            }else{
+                try{
+                    log.info("[auth] user is founded!");
+                    log.info("[auth] changing user info..");
+                    user.setEmail(requestChangeUserInfoDto.getEmail());
+                    user.setAddress(requestChangeUserInfoDto.getAddress());
+
+                    userRepository.save(user);
+                    log.info("[auth] update user info successfully!");
+                    return ResultCode.OK.toResponseEntity();
+                }catch (Exception e){
+                    e.printStackTrace();
+                    return ResultCode.FAIL.toResponseEntity();
+                }
+            }
+        }
     }
 
     private boolean checkUserExist(String email, String loginType){
