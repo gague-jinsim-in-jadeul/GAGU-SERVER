@@ -1,6 +1,7 @@
 package org.gagu.gagubackend.auth.dao;
 
 import org.gagu.gagubackend.auth.dto.request.RequestAddressDto;
+import org.gagu.gagubackend.auth.dto.request.RequestChangeUserInfoDto;
 import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignDto;
 import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
 import org.springframework.http.ResponseEntity;
@@ -52,4 +53,6 @@ public interface AuthDAO {
      * @return
      */
     ResponseEntity<?> deleteToken(String token);
+
+    ResponseEntity<?> saveUserInfo(RequestChangeUserInfoDto requestChangeUserInfoDto, String nickname);
 }

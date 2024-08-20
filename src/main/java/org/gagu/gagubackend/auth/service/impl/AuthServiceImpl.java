@@ -240,6 +240,11 @@ public class AuthServiceImpl implements AuthService {
         return authDAO.deleteToken(token);
     }
 
+    @Override
+    public ResponseEntity<?> updateUserInfo(RequestChangeUserInfoDto requestChangeUserInfoDto, String nickname) {
+        return authDAO.saveUserInfo(requestChangeUserInfoDto, nickname);
+    }
+
     private RequestSaveUserDto getKakaoUserInfo(String accessToken){
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();

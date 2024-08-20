@@ -31,6 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/v1/auth/kakao/callback",
             "/api/v1/auth/google/sign",
             "/api/v1/auth/kakao/sign",
+            "/api/v1/auth/profile-upload",
             "/api/v1/auth/general/sign-up",
             "/api/v1/auth/general/sign-in",
             "/api/v1/auth/authorize",

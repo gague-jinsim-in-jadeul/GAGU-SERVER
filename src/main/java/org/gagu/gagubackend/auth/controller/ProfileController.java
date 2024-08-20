@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.dto.request.RequestAddressDto;
+import org.gagu.gagubackend.auth.dto.request.RequestChangeUserInfoDto;
 import org.gagu.gagubackend.auth.service.AuthService;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
 import org.gagu.gagubackend.global.security.JwtTokenProvider;
@@ -60,5 +61,24 @@ public class ProfileController {
         String nickName = jwtTokenProvider.getUserNickName(token);
 
         return authService.saveAddress(requestAddressDto, nickName);
+    }
+    @Operation(summary = "사용자 정보 변경", description = "로그인 후 자신의 사용자 정보를 변경합니다.")
+    @PostMapping("/user-info/reset")
+    public ResponseEntity<?> updateUserInfo(@RequestBody RequestChangeUserInfoDto requestChangeUserInfoDto,
+                                            HttpServletRequest request){
+        String token = jwtTokenProvider.extractToken(request);
+        if(token.isEmpty()){
+            return ResultCode.NOT_FOUND_TOKEN.toResponseEntity();
+        }
+        String nickName = jwtTokenProvider.getUserNickName(token);
+
+        if(requestChangeUserInfoDto.getEmail() == null){
+            return ResultCode.BAD_REQUEST.toResponseEntity();
+        }
+        if(requestChangeUserInfoDto.getAddress() == null){
+            return ResultCode.BAD_REQUEST.toResponseEntity();
+        }
+
+        return authService.updateUserInfo(requestChangeUserInfoDto, nickName);
     }
 }
