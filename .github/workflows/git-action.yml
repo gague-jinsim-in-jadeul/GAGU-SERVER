@@ -36,7 +36,7 @@ jobs:
 
     - name: web docker build and push
       run: |
-          echo "${{ secrets.DOCKER_KEY }}" | docker login -u ${{ secrets.DOCKER_NAME }} --password-stdin
+          echo "${{ secrets.DOCKER_PW }}" | docker login -u ${{ secrets.DOCKER_NAME }} --password-stdin
           docker build -t ${{ secrets.DOCKER_NAME }}/gagu-server:latest .
           docker push ${{ secrets.DOCKER_NAME }}/gagu-server:latest
 
