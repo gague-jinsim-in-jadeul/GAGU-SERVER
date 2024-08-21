@@ -13,6 +13,9 @@ import org.gagu.gagubackend.chat.repository.ChatRoomMemberRepository;
 import org.gagu.gagubackend.chat.repository.ChatRoomRepository;
 import org.gagu.gagubackend.chat.service.ChatService;
 import org.gagu.gagubackend.global.domain.enums.MessageType;
+import org.gagu.gagubackend.global.domain.enums.ResultCode;
+import org.gagu.gagubackend.global.exception.ChatRoomNotFoundException;
+import org.gagu.gagubackend.global.exception.NotFoundUserException;
 import org.gagu.gagubackend.global.exception.NotMemberException;
 import org.gagu.gagubackend.global.security.JwtTokenProvider;
 import org.gagu.gagubackend.user.domain.User;
@@ -63,8 +66,19 @@ public class ChatController {
     public ResponseEntity<?> removeChatRoom(
             HttpServletRequest request,
             @PathVariable Long roomNumber){
+        if(roomNumber == null){
+            return ResultCode.BAD_REQUEST.toResponseEntity();
+        }
+        String token = jwtTokenProvider.extractToken(request);
+        if(token == null){
+            return ResultCode.TOKEN_IS_NULL.toResponseEntity();
+        }
+        String nickName = jwtTokenProvider.getUserNickName(token);
+        if(nickName.isEmpty()){
+            return ResultCode.NOT_FOUND_USER.toResponseEntity();
+        }
 
-        return chatService.exitChatRoom(roomNumber);
+        return chatService.exitChatRoom(roomNumber, nickName);
     }
     @Operation(summary = "채팅방 내역을 조회합니다.", security = @SecurityRequirement(name = "JWT"))
     @GetMapping("/contents/{roomNumber}")
@@ -92,7 +106,7 @@ public class ChatController {
         return ResponseEntity.ok(chatService.getMyChatRooms(nickName, pageable));
     }
 
-    @MessageMapping("/gagu-chat/{roomNumber}") // mapping ex)/pub/gagu/chat
+    @MessageMapping("/gagu-chat/{roomNumber}") // mapping ex)/pub/gagu-chat/{roomNumber}
     public void sendMessage(RequestChatContentsDto message,
                                          SimpMessageHeaderAccessor accessor,
                                          @DestinationVariable Long roomNumber) throws Exception {
@@ -104,27 +118,37 @@ public class ChatController {
         if (nickname == null) {
             throw new IllegalArgumentException("세션에 닉네임이 없습니다.");
         }
-        message.setNickname(nickname);
 
-        if(message.getType() == MessageType.SUBSCRIBE){ // type : SUBSCRIBE
-            User member = userRepository.findByNickName(message.getNickname());
-            Optional<ChatRoom> chatRoomList = chatRoomRepository.findById(roomNumber);
-            if(chatRoomList.isPresent() && checkMember(chatRoomList.get(),member)){
-                accessor.getSessionAttributes().put("chatRoomId",roomNumber);
+        Long sessionRoomId = (Long) accessor.getSessionAttributes().get("chatRoomId");
+
+        if(sessionRoomId==null){ // 처음 메세지 보내는 경우
+            log.info("[chat] chatting session is empty room id : {}, nickname : {}", roomNumber,nickname);
+            User user = userRepository.findByNickName(nickname);
+            if(user == null){
+                throw new NotFoundUserException();
+            }
+            Optional<ChatRoom> foundChatRoomList = chatRoomRepository.findById(roomNumber);
+            if(!foundChatRoomList.isEmpty()){
+                ChatRoom chatRoom = foundChatRoomList.get();
+                if(checkMember(chatRoom, user)){ // 채팅방 권한이 있다면
+                    accessor.getSessionAttributes().putIfAbsent("chatRoomId", roomNumber);// 세션에 저장되어 있지 않을때, 세션에 저장
+                    log.info("[chat] successfully put room id to session");
+                }
+                log.info("[chat] complete check member");
+                Thread.sleep(1000); // 비동기적으로 메시지를 처리하기 위해서 1초 지연(옵션)
+                log.info("[chat] question : {}", message.getContents());
+                ResponseChatDto responseChatDto = chatService.sendContents(message,roomNumber,nickname);
+                template.convertAndSend("/sub/chatroom/"+roomNumber,responseChatDto); // 구독하고 있는 채팅방에 전송
             }else{
-                throw new NotMemberException("채팅방에 속해 있지 않습니다.");
+                throw new ChatRoomNotFoundException();
             }
-        }else{ // type : SEND
-            Long sessionRoomId = (Long) accessor.getSessionAttributes().get("chatRoomId");
-            if(sessionRoomId == null || !sessionRoomId.equals(roomNumber)){
-                throw new NotMemberException("채팅방에 속해 있지 않습니다.");
-            }
+        }else{
+            log.info("[chat] complete check member");
+            Thread.sleep(1000); // 비동기적으로 메시지를 처리하기 위해서 1초 지연(옵션)
+            log.info("[chat] question : {}", message.getContents());
+            ResponseChatDto responseChatDto = chatService.sendContents(message,roomNumber,nickname);
+            template.convertAndSend("/sub/chatroom/"+roomNumber,responseChatDto); // 구독하고 있는 채팅방에 전송
         }
-        log.info("[chat] complete check member");
-        Thread.sleep(1000); // 비동기적으로 메시지를 처리하기 위해서 1초 지연(옵션)
-
-        ResponseChatDto responseChatDto = chatService.sendContents(message,roomNumber);
-        template.convertAndSend("/sub/chatroom/"+roomNumber,responseChatDto); // 구독하고 있는 채팅방에 전송
     }
     private boolean checkMember(ChatRoom roomId, User member){
         return chatRoomMemberRepository.existsChatRoomMemberByRoomIdAndMember(roomId,member);

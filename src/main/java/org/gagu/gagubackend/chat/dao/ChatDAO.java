@@ -22,10 +22,11 @@ public interface ChatDAO {
 
     /**
      * 채팅방 삭제
+     * 둘 다 채팅방을 삭제 하면 채팅 내역이 사라집니다.
      * @param roomNumber
      * @return 상태반환
      */
-    ResponseEntity<?> deleteChatRoom(Long roomNumber);
+    ResponseEntity<?> deleteChatRoom(Long roomNumber, String nickname);
 
     /**
      * 메세지 전송 후 저장
@@ -33,7 +34,7 @@ public interface ChatDAO {
      * @param roomNumber
      * @return dto
      */
-    ResponseChatDto saveMessage(RequestChatContentsDto requestChatContentsDto, Long roomNumber);
+    ResponseChatDto saveMessage(RequestChatContentsDto requestChatContentsDto, Long roomNumber, String nickname);
 
     /**
      * 채팅방 내용 반환

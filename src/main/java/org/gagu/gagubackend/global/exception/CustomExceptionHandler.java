@@ -35,4 +35,13 @@ public class CustomExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(NotFoundUserException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<?> handleUserNotFoundException(NotFoundUserException e){
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("msg", e.getMessage());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
 }
