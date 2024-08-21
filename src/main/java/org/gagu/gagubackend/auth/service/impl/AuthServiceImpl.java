@@ -51,6 +51,8 @@ public class AuthServiceImpl implements AuthService {
     private String kakaoUserInfoUrl;
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
+    @Value("${basic.profile.url}")
+    private String basicProfileUrl;
 
 
     @Override
@@ -146,7 +148,7 @@ public class AuthServiceImpl implements AuthService {
                         .password(getRandomPassword())
                         .email(requestOauthSignDto.getEmail())
                         .phoneNumber(null)
-                        .profileUrl(requestOauthSignDto.getProfileUrl())
+                        .profileUrl(basicProfileUrl)
                         .loginType(LoginType.KAKAO.toString())
                         .useAble(true)
                         .build();
@@ -164,7 +166,7 @@ public class AuthServiceImpl implements AuthService {
                         .password(getRandomPassword())
                         .email(requestOauthSignDto.getEmail())
                         .phoneNumber(null)
-                        .profileUrl(requestOauthSignDto.getProfileUrl())
+                        .profileUrl(basicProfileUrl)
                         .loginType(LoginType.GOOGLE.toString())
                         .useAble(true)
                         .build();
