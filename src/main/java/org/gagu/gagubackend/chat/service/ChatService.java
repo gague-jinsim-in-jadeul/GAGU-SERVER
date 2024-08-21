@@ -22,10 +22,11 @@ public interface ChatService {
 
     /**
      * 채팅방 삭제
+     * 둘 다 채팅방을 삭제 하면 채팅 내역이 사라집니다.
      * @param roomNumber 채팅방 id 값
      * @return
      */
-    ResponseEntity<?> exitChatRoom(Long roomNumber);
+    ResponseEntity<?> exitChatRoom(Long roomNumber, String nickname);
 
     /**
      * 메세지 전송
@@ -33,7 +34,7 @@ public interface ChatService {
      * @param roomNumber 채팅방 id 값
      * @return ResponseChatDto
      */
-    ResponseChatDto sendContents(RequestChatContentsDto message, Long roomNumber);
+    ResponseChatDto sendContents(RequestChatContentsDto message, Long roomNumber, String nickname);
 
     /**
      * 채팅방 내역 페이징 처리 후 반환

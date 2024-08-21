@@ -34,25 +34,17 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public ResponseEntity<?> exitChatRoom(Long roomNumber) {
-        return chatDAO.deleteChatRoom(roomNumber);
+    public ResponseEntity<?> exitChatRoom(Long roomNumber, String nickname) {
+        return chatDAO.deleteChatRoom(roomNumber, nickname);
     }
 
     @Override
-    public ResponseChatDto sendContents(RequestChatContentsDto message, Long roomNumber) {
+    public ResponseChatDto sendContents(RequestChatContentsDto message, Long roomNumber, String nickname) {
         String messageType = message.getType().toString();
-        ResponseChatDto responseChatDto = new ResponseChatDto();
 
         switch (messageType){
             case "SEND":
-                return chatDAO.saveMessage(message,roomNumber);
-
-            case "SUBSCRIBE":
-                responseChatDto.setContents(message.getNickname()+" 님이 들어오셨습니다.");
-                responseChatDto.setTime(LocalDateTime.now());
-                responseChatDto.setNickName(message.getNickname());
-
-                return responseChatDto;
+                return chatDAO.saveMessage(message,roomNumber,nickname);
         }
         return null;
     }

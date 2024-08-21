@@ -38,6 +38,7 @@ public class ChatDAOImpl implements ChatDAO {
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatContentsRepository chatContentsRepository;
+
     @Override
     public ResponseEntity<?> createChatRoom(RequestUserInfoDto userInfoDto, RequestCreateChatRoomDto requestCreateChatRoomDto) {
         log.info("[chat] create chat room");
@@ -46,20 +47,20 @@ public class ChatDAOImpl implements ChatDAO {
         String workShopEmail = requestCreateChatRoomDto.getSellerEmail();
         String workShopName = requestCreateChatRoomDto.getSellerNickname();
 
-        if (checkUserExist(userEmail,userNickname) && checkWorkshopExist(workShopEmail,workShopName)){
-            User buyer = userRepository.findByEmailAndNickName(userEmail,userNickname);
-            User workshop = userRepository.findByEmailAndNickName(workShopEmail,workShopName);
+        if (checkUserExist(userEmail, userNickname) && checkWorkshopExist(workShopEmail, workShopName)) {
+            User buyer = userRepository.findByEmailAndNickName(userEmail, userNickname);
+            User workshop = userRepository.findByEmailAndNickName(workShopEmail, workShopName);
             log.info("[chat] user is exist!");
 
             log.info("[chat] is check chatroom exist....");
-            if(areUsersInSameRoom(buyer,workshop)){
+            if (areUsersInSameRoom(buyer, workshop)) {
                 log.warn("[chat] chatroom is already exist!");
-                Optional<ChatRoomMember> chatRoomMember = chatRoomMemberRepository.findChatRoomMemberByMembers(buyer,workshop);
+                Optional<ChatRoomMember> chatRoomMember = chatRoomMemberRepository.findChatRoomMemberByMembers(buyer, workshop);
                 Long roomId = chatRoomMember.get().getRoomId().getId();
                 return ResponseEntity.status(ResultCode.DUPLICATE_CHATROOM.getCode()).body(roomId);
             }
 
-            String chatRoomName = createChatRoomName(userNickname,workShopName);
+            String chatRoomName = createChatRoomName(userNickname, workShopName);
 
             ChatRoom newChatRoom = new ChatRoom();
             newChatRoom.setRoomName(chatRoomName);
@@ -82,45 +83,70 @@ public class ChatDAOImpl implements ChatDAO {
             log.info("[chat] create chatroom success");
 
             return ResponseEntity.status(ResultCode.OK.getCode()).body(newChatRoom.getId());
-        }else{
+        } else {
             log.warn("[chat] user is not found!");
             return ResultCode.NOT_FOUND_USER.toResponseEntity();
         }
     }
 
     @Override
-    public ResponseEntity<?> deleteChatRoom(Long roomId) {
-        log.info("[chat] find chatroom");
+    public ResponseEntity<?> deleteChatRoom(Long roomId, String nickname) {
+        log.info("[chat] finding chatroom...");
         Optional<ChatRoom> chatRoomList = chatRoomRepository.findById(roomId);
-        if(!chatRoomList.isEmpty()){
-            ChatRoom findChatRoom = chatRoomList.get();
-            if(checkChatRoomExist(findChatRoom)){
-                List<ChatRoomMember> chatRoomMemberList = chatRoomMemberRepository.findAllByRoomId(findChatRoom);
+        User foundUser = userRepository.findByNickName(nickname);
+        if(foundUser == null){
+            return ResultCode.NOT_FOUND_USER.toResponseEntity();
+        }
+        if(!(foundUser.isEnabled())){
+            return ResultCode.DELETED_USER.toResponseEntity();
+        }
 
-                for(ChatRoomMember tmp : chatRoomMemberList){
+        if (!chatRoomList.isEmpty()) {
+            ChatRoom findChatRoom = chatRoomList.get();
+            List<ChatRoomMember> chatRoomMemberList = chatRoomMemberRepository.findAllByRoomId(findChatRoom);
+
+            for (ChatRoomMember tmp : chatRoomMemberList) {
+                if(tmp.getMember().equals(foundUser)){
                     tmp.setMember(null);
                     tmp.setRoomId(null);
-
-                    chatRoomMemberRepository.delete(tmp);
+                    chatRoomMemberRepository.delete(tmp); // 본인만 삭제
                 }
-                chatRoomRepository.delete(findChatRoom);
-                return ResponseEntity.status(ResultCode.OK.getCode()).body("성공적으로 채팅방을 삭제하였습니다.");
-            }else{
-                return ResponseEntity.status(ResultCode.FAIL.getCode()).body("채팅방 정보가 일치하지 않습니다.");
             }
 
-            }else{
-            return ResponseEntity.status(ResultCode.FAIL.getCode()).body("해당 채팅방을 찾지 못했습니다.");
+            if(!chatRoomMemberRepository.existsChatRoomMemberByRoomId(findChatRoom)){ // 둘 다 채팅방을 나간 경우
+                log.info("[chat] buyer and seller already exit room!");
+                log.info("[chat] delete chatroom!");
+
+                try{
+                    chatContentsRepository.deleteAllByChatRoomId(findChatRoom.getId());
+                    log.info("[chat] delete chat contents successfully!");
+                }catch (Exception e) {
+                    e.printStackTrace();
+                    log.error("[chat] fail to delete chat contents!");
+                }
+                try{
+                    chatRoomRepository.delete(findChatRoom);
+                    log.info("[chat] delete chat room successfully!");
+                }catch (Exception e){
+                    e.printStackTrace();
+                    log.error("[chat] fail to delete chatroom!");
+                }
+            }
+            return ResponseEntity.status(ResultCode.OK.getCode()).body("성공적으로 채팅방을 삭제하였습니다.");
+        } else {
+            return ResponseEntity.status(ResultCode.FAIL.getCode()).body("해당 채팅방을 찾을 수 없습니다.");
         }
+
     }
 
+
     @Override
-    public ResponseChatDto saveMessage(RequestChatContentsDto requestChatContentsDto, Long roomId) {
+    public ResponseChatDto saveMessage(RequestChatContentsDto requestChatContentsDto, Long roomId, String nickname) {
 
         // 저장되는 채팅 내역
         ChatContents chatContents = ChatContents.builder()
                 .sendTime(LocalDateTime.now())
-                .sender(requestChatContentsDto.getNickname())
+                .sender(nickname)
                 .message(requestChatContentsDto.getContents())
                 .chatRoomId(roomId)
                 .build();

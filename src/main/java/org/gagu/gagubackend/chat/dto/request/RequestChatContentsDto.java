@@ -12,5 +12,4 @@ import org.gagu.gagubackend.global.domain.enums.MessageType;
 public class RequestChatContentsDto {
     private MessageType type;
     private String contents;
-    private String nickname;
 }
