@@ -2,6 +2,7 @@ package org.gagu.gagubackend.chat.controller;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,7 @@ public class ImageController {
     private String STABLE_DIFFUSTION_TOKEN;
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
-
+    @Operation(summary = "3D 랜더링", description = "사용자가 희망하는 2D 이미지를 3D 로 변환합니다.")
     @PostMapping("/3d")
     ResponseEntity<?> rendering3D(@RequestParam("file") MultipartFile file) throws IOException {
 
