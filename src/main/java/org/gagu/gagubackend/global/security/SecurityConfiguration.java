@@ -64,7 +64,8 @@ public class SecurityConfiguration {
                                 "/api/v1/auth/profile-upload").permitAll() // 채팅
                         .requestMatchers(PATTERNS).permitAll()
 
-                        .requestMatchers("/api/v1/**").hasRole("USER")
+                        .requestMatchers("/api/v1/**",
+                                "/api/v1/image").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
