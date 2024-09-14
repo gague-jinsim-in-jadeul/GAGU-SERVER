@@ -49,12 +49,13 @@ public class ImageController {
 
         log.info("[3D-rendering] 2D file : {}",file.getOriginalFilename());
         // ByteArrayResource 생성 시 getFilename() 메서드 오버라이드
-        ByteArrayResource byteArrayResource = new ByteArrayResource(file.getBytes()) {
+        ByteArrayResource byteArrayResource = new ByteArrayResource(file.getBytes()){ // 익명 클래스 생성
             @Override
-            public String getFilename() {
+            public String getFilename() { // 인스턴스가 사용 될 때 메서드가 호출됨.
                 return file.getOriginalFilename(); // 파일 이름 제공
             }
         };
+
 
 
         log.info("[3D-rendering] create 3D by 2D!");
