@@ -91,7 +91,8 @@ public class AuthDAOImpl implements AuthDAO {
                     return ResponseEntity.status(ResultCode.OK.getCode())
                             .body(ResponseAuthDto.builder()
                                     .accessToken(jwtTokenProvider.createAccessToken(user.getEmail(), user.getNickName(), user.getRoles()))
-                                    .name(user.getUsername())
+                                    .nickname(user.getNickName())
+                                    .name(user.getName())
                                     .status(CommonResponse.success())
                                     .build());
                 } catch (DataIntegrityViolationException e) {
@@ -122,7 +123,8 @@ public class AuthDAOImpl implements AuthDAO {
                     return ResponseEntity.status(ResultCode.OK.getCode())
                             .body(ResponseAuthDto.builder()
                                     .accessToken(jwtTokenProvider.createAccessToken(user.getEmail(), user.getNickName(), user.getRoles()))
-                                    .name(user.getUsername())
+                                    .nickname(user.getNickName())
+                                    .name(user.getName())
                                     .status(CommonResponse.success())
                                     .build());
 
@@ -166,7 +168,8 @@ public class AuthDAOImpl implements AuthDAO {
                     return ResponseEntity.status(ResultCode.OK.getCode())
                             .body(ResponseAuthDto.builder()
                                     .accessToken(jwtTokenProvider.createAccessToken(user.getEmail(), user.getNickName(), user.getRoles()))
-                                    .name(requestSaveUserDto.getName())
+                                    .nickname(user.getNickName())
+                                    .name(user.getName())
                                     .status(CommonResponse.success())
                                     .build());
                 }
@@ -201,7 +204,8 @@ public class AuthDAOImpl implements AuthDAO {
                     return ResponseEntity.status(ResultCode.OK.getCode())
                             .body(ResponseAuthDto.builder()
                                     .accessToken(jwtTokenProvider.createAccessToken(tmp.getEmail(), tmp.getNickName(),tmp.getRoles()))
-                                    .name(tmp.getUsername())
+                                    .nickname(tmp.getNickName())
+                                    .name(tmp.getName())
                                     .status(CommonResponse.success())
                                     .build());
                 }
@@ -232,7 +236,8 @@ public class AuthDAOImpl implements AuthDAO {
                 return ResponseEntity.status(ResultCode.OK.getCode())
                         .body(ResponseAuthDto.builder()
                                 .accessToken(jwtTokenProvider.createAccessToken(user.getEmail(), user.getNickName(),user.getRoles()))
-                                .name(user.getUsername())
+                                .nickname(user.getNickName())
+                                .name(user.getName())
                                 .status(CommonResponse.success())
                                 .build());
             }else{
