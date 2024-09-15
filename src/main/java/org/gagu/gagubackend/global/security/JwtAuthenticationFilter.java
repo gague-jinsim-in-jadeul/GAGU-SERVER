@@ -43,7 +43,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/images/**",
             "/js/**",
             "/favicon.ico",
-            "/chat/**"
+            "/chat/**",
+            "/chat-2d/**"
     );
 
     @Override

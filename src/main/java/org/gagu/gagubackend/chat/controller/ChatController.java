@@ -150,6 +150,7 @@ public class ChatController {
             template.convertAndSend("/sub/chatroom/"+roomNumber,responseChatDto); // 구독하고 있는 채팅방에 전송
         }
     }
+
     private boolean checkMember(ChatRoom roomId, User member){
         return chatRoomMemberRepository.existsChatRoomMemberByRoomIdAndMember(roomId,member);
     }
