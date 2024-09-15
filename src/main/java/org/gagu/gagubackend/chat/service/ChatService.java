@@ -1,10 +1,11 @@
 package org.gagu.gagubackend.chat.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.gagu.gagubackend.chat.domain.ChatContents;
-import org.gagu.gagubackend.chat.domain.ChatRoom;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
+import org.gagu.gagubackend.chat.dto.response.ResponseImageDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseMyChatRoomsDto;
 import org.gagu.gagubackend.user.dto.request.RequestUserInfoDto;
 import org.springframework.data.domain.Page;
@@ -34,7 +35,7 @@ public interface ChatService {
      * @param roomNumber 채팅방 id 값
      * @return ResponseChatDto
      */
-    ResponseChatDto sendContents(RequestChatContentsDto message, Long roomNumber, String nickname);
+    ResponseChatDto sendContents(RequestChatContentsDto message, Long roomNumber, String nickname) throws JsonProcessingException;
 
     /**
      * 채팅방 내역 페이징 처리 후 반환
@@ -51,4 +52,12 @@ public interface ChatService {
      * @return 채팅방
      */
     Page<ResponseMyChatRoomsDto> getMyChatRooms(String nickname, Pageable pageable);
+
+    /**
+     * LLM 2D 이미지 반환
+     *
+     * @param message
+     * @return jpeg
+     */
+    ResponseImageDto generate2D(RequestChatContentsDto message) throws JsonProcessingException;
 }

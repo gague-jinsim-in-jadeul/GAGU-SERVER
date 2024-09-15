@@ -6,11 +6,18 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
+import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
+import org.gagu.gagubackend.chat.dto.response.ResponseImageDto;
+import org.gagu.gagubackend.chat.service.ChatService;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
 import org.gagu.gagubackend.global.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +38,8 @@ import java.util.Map;
 public class ImageController {
     private final JwtTokenProvider jwtTokenProvider;
     private final AmazonS3Client amazonS3Client;
+    private final ChatService chatService;
+    private final SimpMessagingTemplate template;
 
     @Value("${stable.fast.3d}")
     private String STABLE_FAST_3D;
@@ -106,5 +115,15 @@ public class ImageController {
             return ResultCode.FAIL.toResponseEntity();
         }
         return null;
+    }
+    @MessageMapping("/gagu-chat/2d") // mapping ex)/pub/gagu-chat/2d
+    public void chattingWith2D(RequestChatContentsDto message,
+                               SimpMessageHeaderAccessor accessor) throws Exception {
+        log.info("[2D-chat] send prompt : {}", message.getContents());
+        Thread.sleep(1000); // 비동기적으로 메시지를 처리하기 위해서 1초 지연(옵션)
+        log.info("[chat] question : {}", message.getContents());
+        String nickname = (String) accessor.getSessionAttributes().get("senderNickname");
+        ResponseImageDto responseChatDto = chatService.generate2D(message);
+        template.convertAndSendToUser(nickname,"/sub", responseChatDto); // /user/{username}/{destination}
     }
 }

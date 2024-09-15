@@ -61,6 +61,7 @@ public class SecurityConfiguration {
 
                         .requestMatchers("/api/v1/auth/**",
                                 "/chat/**",
+                                "/chat-2d/**",
                                 "/api/v1/auth/profile-upload").permitAll() // 채팅
                         .requestMatchers(PATTERNS).permitAll()
 

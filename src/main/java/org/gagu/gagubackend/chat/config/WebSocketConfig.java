@@ -15,14 +15,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final StompHandler stompHandler;
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) { // 메모리 기반 메세지 브로커
-        config.enableSimpleBroker("/sub");
+        config.enableSimpleBroker("/sub","/user");
         config.setApplicationDestinationPrefixes("/pub");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/chat")
-                .setAllowedOriginPatterns("*");
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
+        registry.addEndpoint("/chat-2d")
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
     }
 
     /**
