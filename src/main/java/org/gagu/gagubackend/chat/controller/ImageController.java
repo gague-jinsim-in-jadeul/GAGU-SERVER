@@ -121,7 +121,6 @@ public class ImageController {
                                SimpMessageHeaderAccessor accessor) throws Exception {
         log.info("[2D-chat] send prompt : {}", message.getContents());
         Thread.sleep(1000); // 비동기적으로 메시지를 처리하기 위해서 1초 지연(옵션)
-        log.info("[chat] question : {}", message.getContents());
         String nickname = (String) accessor.getSessionAttributes().get("senderNickname");
         ResponseImageDto responseChatDto = chatService.generate2D(message);
         template.convertAndSendToUser(nickname,"/sub", responseChatDto); // /user/{username}/{destination}
