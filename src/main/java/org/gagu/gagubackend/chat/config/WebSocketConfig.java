@@ -38,11 +38,4 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(stompHandler);
     }
-
-    @Override
-    public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
-        registration.setMessageSizeLimit(10 * 1024 * 1024); // 예: 메시지 크기 제한
-        registration.setSendTimeLimit(20_000); // 예: 전송 타임리밋 설정
-        registration.setSendBufferSizeLimit(512 * 1024); // 예: 버퍼 사이즈 설정
-    }
 }
