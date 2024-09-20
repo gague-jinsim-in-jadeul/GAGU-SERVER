@@ -2,6 +2,8 @@ package org.gagu.gagubackend.chat.controller;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.aspose.threed.ObjSaveOptions;
+import com.aspose.threed.Scene;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +12,7 @@ import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseImageDto;
 import org.gagu.gagubackend.chat.service.ChatService;
+import org.gagu.gagubackend.global.config.RedisConfig;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
 import org.gagu.gagubackend.global.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,8 +31,14 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/v1/image")
@@ -40,6 +49,7 @@ public class ImageController {
     private final AmazonS3Client amazonS3Client;
     private final ChatService chatService;
     private final SimpMessagingTemplate template;
+    private final RedisConfig redisConfig;
 
     @Value("${stable.fast.3d}")
     private String STABLE_FAST_3D;
@@ -88,18 +98,47 @@ public class ImageController {
 
             if(response.getStatusCode() == HttpStatus.OK){ // 정상 응답 시
                 log.info("[3D-rendering] rendering success!");
-                String filename = "3d-rendering" + System.currentTimeMillis() + ".glb";
-                ObjectMetadata data = new ObjectMetadata();
 
-                data.setContentType("model/gltf-binary"); // 파일 타입
-                data.setContentLength(response.getBody().length); // 파일 사이즈
+                // glb 임시 파일 저장
+                String glbFileName = "img_files/3d-rendering" + System.currentTimeMillis() + ".glb";
+                Files.write(Path.of(glbFileName), response.getBody());
+
+                ObjSaveOptions saveObjOpts = new ObjSaveOptions();
+                saveObjOpts.setEnableMaterials(false);
+
+                Scene scene = new Scene();
+
+                scene.open(glbFileName); // glb 터치
+                String objFileName = "img_files/3d-rendering"+System.currentTimeMillis()+".obj";
+                scene.save(objFileName, saveObjOpts);
+
+                // glb 삭제
+                try{
+                    log.info("[3D-rendering] delete glb file!");
+                    Files.delete(Path.of(glbFileName));
+                }catch (Exception e){
+                    log.error("[3D-rendering] fail to delete glb file!");
+                    e.printStackTrace();
+                }
+
+
+                ObjectMetadata data = new ObjectMetadata();
+                data.setContentType("application/octet-stream"); // 파일 타입
+                data.setContentLength(new File(objFileName).length()); // 파일 사이즈
 
                 try{
                     log.info("[3D-rendering] try to upload on S3");
-                    amazonS3Client.putObject(bucket, filename, new ByteArrayInputStream(response.getBody()), data);
+                    amazonS3Client.putObject(bucket, objFileName, new FileInputStream(objFileName), data);
                     log.info("[3D-rendering] successfully upload to S3!");
-                    String glbUrl = amazonS3Client.getUrl(bucket,filename).toString();
-                    return ResponseEntity.ok().body(Map.of("url", glbUrl));
+                    String objUrl = amazonS3Client.getUrl(bucket,objFileName).toString();
+                    try{
+                        log.info("[3D-rendering] delete obj file!");
+                        Files.delete(Path.of(objFileName));
+                    }catch (Exception e){
+                        log.error("[3D-rendering] fail to delete obj file!");
+                        e.printStackTrace();
+                    }
+                    return ResponseEntity.ok().body(Map.of("url", objUrl));
                 } catch (Exception e){
                     log.error("[3D-rendering] fail to upload on S3");
                     e.printStackTrace();
