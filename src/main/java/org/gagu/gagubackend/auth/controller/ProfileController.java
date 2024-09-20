@@ -78,6 +78,9 @@ public class ProfileController {
         if(requestChangeUserInfoDto.getAddress() == null){
             return ResultCode.BAD_REQUEST.toResponseEntity();
         }
+        if(requestChangeUserInfoDto.getNickname().equals(nickName)){
+            return ResultCode.ALREADY_NICKNAME.toResponseEntity();
+        }
 
         return authService.updateUserInfo(requestChangeUserInfoDto, nickName);
     }
