@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
+import org.gagu.gagubackend.chat.dto.response.Response3dDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseImageDto;
 import org.gagu.gagubackend.chat.service.ChatService;
@@ -103,10 +104,9 @@ public class ImageController {
                 String glbFileName = "img_files/3d-rendering" + System.currentTimeMillis() + ".glb";
                 Files.write(Path.of(glbFileName), response.getBody());
 
-                ObjSaveOptions saveObjOpts = new ObjSaveOptions();
-                saveObjOpts.setEnableMaterials(false);
-
                 Scene scene = new Scene();
+                ObjSaveOptions saveObjOpts = new ObjSaveOptions();
+                saveObjOpts.setExportTextures(true);
 
                 scene.open(glbFileName); // glb 터치
                 String objFileName = "img_files/3d-rendering"+System.currentTimeMillis()+".obj";
@@ -121,29 +121,70 @@ public class ImageController {
                     e.printStackTrace();
                 }
 
-
-                ObjectMetadata data = new ObjectMetadata();
+                log.info("[3D-rendering] trying to upload 4 files on s3..");
+                ObjectMetadata data = new ObjectMetadata(); // obj data
                 data.setContentType("application/octet-stream"); // 파일 타입
                 data.setContentLength(new File(objFileName).length()); // 파일 사이즈
 
+                Response3dDto response3dDto = new Response3dDto();
+
+                // obj upload
                 try{
-                    log.info("[3D-rendering] try to upload on S3");
-                    amazonS3Client.putObject(bucket, objFileName, new FileInputStream(objFileName), data);
-                    log.info("[3D-rendering] successfully upload to S3!");
-                    String objUrl = amazonS3Client.getUrl(bucket,objFileName).toString();
-                    try{
-                        log.info("[3D-rendering] delete obj file!");
-                        Files.delete(Path.of(objFileName));
-                    }catch (Exception e){
-                        log.error("[3D-rendering] fail to delete obj file!");
-                        e.printStackTrace();
-                    }
-                    return ResponseEntity.ok().body(Map.of("url", objUrl));
-                } catch (Exception e){
-                    log.error("[3D-rendering] fail to upload on S3");
+                    log.info("[3D-rendering] trying to upload obj file on s3..");
+                    amazonS3Client.putObject(bucket,objFileName, new FileInputStream(objFileName),data);
+                    log.info("[3D-rendering] success to upload obj file!");
+                    String objUrl = amazonS3Client.getResourceUrl(bucket,objFileName);
+                    response3dDto.setObjUrl(objUrl);
+                    Files.delete(Path.of(objUrl));
+                }catch (Exception e){
+                    log.error("[3D-rendering] fail to upload obj file!");
                     e.printStackTrace();
                 }
 
+                // mtl upload
+                try{
+                    log.info("[3D-rendering] trying to upload mtl file on s3..");
+                    data = new ObjectMetadata();
+                    data.setContentType("text/plain");
+                    String mtlFileName = objFileName.replace(".obj",".mtl");
+                    data.setContentLength(new File(mtlFileName).length());
+                    amazonS3Client.putObject(bucket,mtlFileName, new FileInputStream(mtlFileName),data);
+                    String mtlUrl = amazonS3Client.getResourceUrl(bucket,mtlFileName);
+                    response3dDto.setMtlUrl(mtlUrl);
+                    Files.delete(Path.of(mtlFileName));
+                }catch (Exception e){
+                    log.error("[3D-rendering] fail to upload mtl file!");
+                    e.printStackTrace();
+                }
+                try{
+                    log.info("[3D-rendering] trying to upload texture_1 file on s3..");
+                    data = new ObjectMetadata();
+                    String texture_1 = "img_files/texture_1.jpg";
+                    data.setContentType("image/jpeg");
+                    data.setContentLength(new File(texture_1).length());
+                    amazonS3Client.putObject(bucket,texture_1, new FileInputStream(texture_1),data);
+                    String texture_1_Url = amazonS3Client.getResourceUrl(bucket,texture_1);
+                    response3dDto.setTexture_1_Url(texture_1_Url);
+                    Files.delete(Path.of(texture_1));
+                }catch (Exception e) {
+                    log.error("[3D-rendering] fail to upload texture_1 file!");
+                    e.printStackTrace();
+                }
+                try{
+                    log.info("[3D-rendering] trying to upload texture_2 file on s3..");
+                    data = new ObjectMetadata();
+                    String texture_2 = "img_files/texture_2.jpg";
+                    data.setContentType("image/jpeg");
+                    data.setContentLength(new File(texture_2).length());
+                    amazonS3Client.putObject(bucket,texture_2, new FileInputStream(texture_2),data);
+                    String texture_2_Url = amazonS3Client.getResourceUrl(bucket,texture_2);
+                    response3dDto.setTexture_2_Url(texture_2_Url);
+                    Files.delete(Path.of(texture_2));
+                }catch (Exception e) {
+                    log.error("[3D-rendering] fail to upload texture_1 file!");
+                    e.printStackTrace();
+                }
+                return ResponseEntity.ok().body(response3dDto);
 
             }else{
                 return ResultCode.FAIL.toResponseEntity();
@@ -153,7 +194,6 @@ public class ImageController {
             e.printStackTrace();
             return ResultCode.FAIL.toResponseEntity();
         }
-        return null;
     }
     @MessageMapping("/gagu-chat/2d") // mapping ex)/pub/gagu-chat/2d
     public void chattingWith2D(RequestChatContentsDto message,
