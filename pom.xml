@@ -16,6 +16,16 @@
     <properties>
         <java.version>17</java.version>
     </properties>
+    <!--Aspose 공식 저장소 추가-->
+    <repositories>
+        <repository>
+            <id>AsposeJavaAPI</id>
+            <name>Aspose Java API</name>
+            <url>https://repository.aspose.com/repo/</url>
+        </repository>
+
+    </repositories>
+
     <dependencies>
         <!--spring-security dependency-->
         <dependency>
@@ -44,7 +54,6 @@
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.0.2</version>
         </dependency>
-
         <!-- mariadb-driver dependency -->
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
@@ -73,15 +82,13 @@
             <version>0.11.5</version>
             <scope>runtime</scope>
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on -->
+        <!-- password in/decoding-->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
             <version>1.64</version>
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-aws -->
+        <!--aws dependency-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-aws</artifactId>
@@ -110,7 +117,12 @@
             <artifactId>sdk</artifactId>
             <version>4.3.0</version>
         </dependency>
-
+        <!--aspose glb to 3d dependency-->
+        <dependency>
+            <groupId>com.aspose</groupId>
+            <artifactId>aspose-3d</artifactId>
+            <version>23.5.0</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
