@@ -60,7 +60,7 @@ public class ChatDAOImpl implements ChatDAO {
                 return ResponseEntity.status(ResultCode.DUPLICATE_CHATROOM.getCode()).body(roomId);
             }
 
-            String chatRoomName = createChatRoomName(userNickname, workShopName);
+            String chatRoomName = createChatRoomName(buyer.getName(), workShopName);
 
             ChatRoom newChatRoom = new ChatRoom();
             newChatRoom.setRoomName(chatRoomName);

@@ -280,6 +280,7 @@ public class AuthDAOImpl implements AuthDAO {
             responseProfileDto.setName(user.getName());
             responseProfileDto.setEmail(user.getEmail());
             responseProfileDto.setAddress(user.getAddress());
+            responseProfileDto.setNickname(nickname);
             switch (user.getLoginType()){
                 case "GOOGLE":
                     responseProfileDto.setLoginTypeLogo(googleLoginLogo);
@@ -347,10 +348,19 @@ public class AuthDAOImpl implements AuthDAO {
                 return ResultCode.DELETED_USER.toResponseEntity();
             }else{
                 try{
-                    log.info("[auth] user is founded!");
+                    log.info("[auth] user is founded! checking user profile..");
+
+                    if(user.getEmail().equals(requestChangeUserInfoDto.getEmail())){
+                        return ResultCode.ALREADY_EMAIL.toResponseEntity();
+                    }
+                    if(user.getAddress().equals(requestChangeUserInfoDto.getAddress())){
+                        return ResultCode.ALREADY_ADDRESS.toResponseEntity();
+                    }
+
                     log.info("[auth] changing user info..");
                     user.setEmail(requestChangeUserInfoDto.getEmail());
                     user.setAddress(requestChangeUserInfoDto.getAddress());
+                    user.setNickName(requestChangeUserInfoDto.getNickname());
 
                     userRepository.save(user);
                     log.info("[auth] update user info successfully!");

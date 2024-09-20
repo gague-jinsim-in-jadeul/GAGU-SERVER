@@ -9,6 +9,7 @@ import lombok.*;
 @ToString
 @Builder
 public class ResponseProfileDto {
+    private String nickname;
     private String name;
     private String email;
     private String loginTypeLogo;
