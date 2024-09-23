@@ -115,16 +115,15 @@ public class EstimateDAOImpl implements EstimateDAO {
         }catch (Exception e){
             log.error("[FINAL-ESTIMATE] fail to save estimate!");
         }
-
-        return ResponseCompleteEstimate.builder()
-                .id(estimate.getId())
-                .furnitureName(estimate.getFurnitureName())
-                .furniture3DObj(estimate.getFurniture3DObj())
-                .furniture3DMtl(estimate.getFurniture3DMtl())
-                .furniture3DTexture1(estimate.getFurniture3DTexture1())
-                .furniture3DTexture2(estimate.getFurniture3DTexture2())
-                .createdDate(estimate.getCreatedTime())
-                .price(estimateChatContentsDto.getPrice())
-                .build();
+        ResponseCompleteEstimate responseCompleteEstimate = new ResponseCompleteEstimate();
+        responseCompleteEstimate.setId(estimate.getId());
+        responseCompleteEstimate.setFurnitureName(estimate.getFurnitureName());
+        responseCompleteEstimate.setFurniture3DObj(estimate.getFurniture3DObj());
+        responseCompleteEstimate.setFurniture3DMtl(estimate.getFurniture3DMtl());
+        responseCompleteEstimate.setFurniture3DTexture1(estimate.getFurniture3DTexture1());
+        responseCompleteEstimate.setFurniture3DTexture2(estimate.getFurniture3DTexture2());
+        responseCompleteEstimate.setCreatedDate(estimate.getCreatedTime());
+        responseCompleteEstimate.setPrice(estimateChatContentsDto.getPrice());
+        return responseCompleteEstimate;
     }
 }
