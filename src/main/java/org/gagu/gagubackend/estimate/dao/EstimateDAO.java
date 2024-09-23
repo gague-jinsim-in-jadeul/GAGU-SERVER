@@ -1,6 +1,9 @@
 package org.gagu.gagubackend.estimate.dao;
 
 import org.gagu.gagubackend.estimate.dto.request.RequestSaveFurnitureDto;
+import org.gagu.gagubackend.estimate.dto.response.ResponseMyFurnitureDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 public interface EstimateDAO {
@@ -11,4 +14,6 @@ public interface EstimateDAO {
      * @return
      */
     ResponseEntity<?> saveFurniture(RequestSaveFurnitureDto requestSaveFurnitureDto, String nickname);
+    Page<ResponseMyFurnitureDto> getMyFurniture(String nickname, Pageable pageable);
+    ResponseEntity<?> deleteFurniture(Long id);
 }
