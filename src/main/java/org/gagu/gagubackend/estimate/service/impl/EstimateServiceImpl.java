@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.estimate.dao.EstimateDAO;
 import org.gagu.gagubackend.estimate.dto.request.RequestSaveFurnitureDto;
+import org.gagu.gagubackend.estimate.dto.response.ResponseMyFurnitureDto;
 import org.gagu.gagubackend.estimate.service.EstimateService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -16,5 +19,15 @@ public class EstimateServiceImpl implements EstimateService {
     @Override
     public ResponseEntity<?> saveFurniture(RequestSaveFurnitureDto requestSaveFurnitureDto, String nickname) {
         return estimateDAO.saveFurniture(requestSaveFurnitureDto, nickname);
+    }
+
+    @Override
+    public Page<ResponseMyFurnitureDto> getFurniture(String nickname, Pageable pageable) {
+        return estimateDAO.getMyFurniture(nickname, pageable);
+    }
+
+    @Override
+    public ResponseEntity<?> deleteFurniture(Long id) {
+        return estimateDAO.deleteFurniture(id);
     }
 }
