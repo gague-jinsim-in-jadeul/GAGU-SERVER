@@ -7,7 +7,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(callSuper = true)
-@Builder
 public class EstimateChatContentsDto extends RequestChatContentsDto{
     private Long id;
     private String price;

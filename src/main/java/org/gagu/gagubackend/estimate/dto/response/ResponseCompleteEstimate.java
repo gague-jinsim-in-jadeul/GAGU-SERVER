@@ -8,7 +8,6 @@ import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(callSuper = true)
-@Builder
 public class ResponseCompleteEstimate extends ResponseChatDto {
     private Long id;
     private String furnitureName;
