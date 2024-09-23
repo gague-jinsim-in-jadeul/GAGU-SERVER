@@ -5,8 +5,8 @@ import org.springframework.http.ResponseEntity;
 
 @Getter
 public enum ResultCode {
-    OK(200, "성공"),
-    FAIL(400,"실패"),
+    OK(200, "성공했습니다."),
+    FAIL(400,"알 수 없는 에러가 발생했습니다."),
     UNAUTHORIZED(403, "권한 없음"),
     PASSWORD_NOT_MATCH(403, "비밀번호 불일치"),
     DELETED_USER(401, "탈퇴 유저입니다. 관리자에게 문의해주세요."),
