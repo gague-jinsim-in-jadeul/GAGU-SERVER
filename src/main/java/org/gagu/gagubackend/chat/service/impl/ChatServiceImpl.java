@@ -9,12 +9,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.chat.dao.ChatDAO;
 import org.gagu.gagubackend.chat.domain.ChatContents;
+import org.gagu.gagubackend.chat.dto.request.EstimateChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseImageDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseMyChatRoomsDto;
 import org.gagu.gagubackend.chat.service.ChatService;
+import org.gagu.gagubackend.estimate.dao.EstimateDAO;
 import org.gagu.gagubackend.user.dto.request.RequestUserInfoDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +38,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
     private final ChatDAO chatDAO;
+    private final EstimateDAO estimateDAO;
     private final AmazonS3Client amazonS3Client;
     @Value("${ai.host}")
     private String AI_HOST;
@@ -59,6 +62,9 @@ public class ChatServiceImpl implements ChatService {
         switch (messageType){
             case "SEND":
                 return chatDAO.saveMessage(message,roomNumber,nickname);
+            case "ESTIMATE":
+                EstimateChatContentsDto estimateChatContentsDto = (EstimateChatContentsDto) message;
+                return estimateDAO.completeEstimate(estimateChatContentsDto, nickname);
         }
         return null;
     }

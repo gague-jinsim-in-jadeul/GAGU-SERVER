@@ -2,9 +2,11 @@ package org.gagu.gagubackend.estimate.dao.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.gagu.gagubackend.chat.dto.request.EstimateChatContentsDto;
 import org.gagu.gagubackend.estimate.dao.EstimateDAO;
 import org.gagu.gagubackend.estimate.domain.Estimate;
 import org.gagu.gagubackend.estimate.dto.request.RequestSaveFurnitureDto;
+import org.gagu.gagubackend.estimate.dto.response.ResponseCompleteEstimate;
 import org.gagu.gagubackend.estimate.dto.response.ResponseMyFurnitureDto;
 import org.gagu.gagubackend.estimate.repository.EstimateRepository;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
@@ -18,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -93,5 +96,35 @@ public class EstimateDAOImpl implements EstimateDAO {
             e.printStackTrace();
             return ResultCode.FAIL.toResponseEntity();
         }
+    }
+
+    @Override
+    public ResponseCompleteEstimate completeEstimate(EstimateChatContentsDto estimateChatContentsDto, String nickname) {
+        log.info("[FINAL-ESTIMATE] updating estimate...");
+        Estimate estimate = estimateRepository.findById(estimateChatContentsDto.getId()).get();
+        if(estimate ==null){
+            throw new NullPointerException();
+        }
+        try{
+            estimate.setPrice(estimateChatContentsDto.getPrice());
+            estimate.setDescription(estimateChatContentsDto.getDescription());
+            estimate.setMakerName(nickname);
+
+            estimateRepository.save(estimate);
+            log.info("[FINAL-ESTIMATE] save estimate successfully!");
+        }catch (Exception e){
+            log.error("[FINAL-ESTIMATE] fail to save estimate!");
+        }
+
+        return ResponseCompleteEstimate.builder()
+                .id(estimate.getId())
+                .furnitureName(estimate.getFurnitureName())
+                .furniture3DObj(estimate.getFurniture3DObj())
+                .furniture3DMtl(estimate.getFurniture3DMtl())
+                .furniture3DTexture1(estimate.getFurniture3DTexture1())
+                .furniture3DTexture2(estimate.getFurniture3DTexture2())
+                .createdDate(estimate.getCreatedTime())
+                .price(estimateChatContentsDto.getPrice())
+                .build();
     }
 }
