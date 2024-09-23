@@ -5,12 +5,10 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.aspose.threed.ObjSaveOptions;
 import com.aspose.threed.Scene;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
-import org.gagu.gagubackend.chat.dto.response.Response3dDto;
-import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
+import org.gagu.gagubackend.chat.dto.response.Response3DDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseImageDto;
 import org.gagu.gagubackend.chat.service.ChatService;
 import org.gagu.gagubackend.global.config.RedisConfig;
@@ -31,15 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/v1/image")
@@ -126,7 +120,7 @@ public class ImageController {
                 data.setContentType("application/octet-stream"); // 파일 타입
                 data.setContentLength(new File(objFileName).length()); // 파일 사이즈
 
-                Response3dDto response3dDto = new Response3dDto();
+                Response3DDto response3dDto = new Response3DDto();
 
                 // obj upload
                 try{
