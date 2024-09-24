@@ -103,7 +103,7 @@ public class ImageController {
                 saveObjOpts.setExportTextures(true);
 
                 scene.open(glbFileName); // glb 터치
-                String objFileName = "img_files/3d-rendering"+System.currentTimeMillis()+".obj";
+                String objFileName = "3d-rendering"+System.currentTimeMillis()+".obj";
                 scene.save(objFileName, saveObjOpts);
 
                 // glb 삭제
@@ -129,7 +129,7 @@ public class ImageController {
                     log.info("[3D-rendering] success to upload obj file!");
                     String objUrl = amazonS3Client.getResourceUrl(bucket,objFileName);
                     response3dDto.setObjUrl(objUrl);
-                    Files.delete(Path.of(objUrl));
+                    Files.delete(Path.of(objFileName));
                 }catch (Exception e){
                     log.error("[3D-rendering] fail to upload obj file!");
                     e.printStackTrace();
@@ -153,7 +153,7 @@ public class ImageController {
                 try{
                     log.info("[3D-rendering] trying to upload texture_1 file on s3..");
                     data = new ObjectMetadata();
-                    String texture_1 = "img_files/texture_1.jpg";
+                    String texture_1 = "texture_1.jpg";
                     data.setContentType("image/jpeg");
                     data.setContentLength(new File(texture_1).length());
                     amazonS3Client.putObject(bucket,texture_1, new FileInputStream(texture_1),data);
@@ -167,7 +167,7 @@ public class ImageController {
                 try{
                     log.info("[3D-rendering] trying to upload texture_2 file on s3..");
                     data = new ObjectMetadata();
-                    String texture_2 = "img_files/texture_2.jpg";
+                    String texture_2 = "texture_2.jpg";
                     data.setContentType("image/jpeg");
                     data.setContentLength(new File(texture_2).length());
                     amazonS3Client.putObject(bucket,texture_2, new FileInputStream(texture_2),data);
@@ -178,6 +178,7 @@ public class ImageController {
                     log.error("[3D-rendering] fail to upload texture_1 file!");
                     e.printStackTrace();
                 }
+
                 return ResponseEntity.ok().body(response3dDto);
 
             }else{
