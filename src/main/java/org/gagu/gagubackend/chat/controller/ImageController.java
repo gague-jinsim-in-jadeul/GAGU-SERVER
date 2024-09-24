@@ -95,7 +95,7 @@ public class ImageController {
                 log.info("[3D-rendering] rendering success!");
 
                 // glb 임시 파일 저장
-                String glbFileName = "img_files/3d-rendering" + System.currentTimeMillis() + ".glb";
+                String glbFileName = "3d-rendering" + System.currentTimeMillis() + ".glb";
                 Files.write(Path.of(glbFileName), response.getBody());
 
                 Scene scene = new Scene();
