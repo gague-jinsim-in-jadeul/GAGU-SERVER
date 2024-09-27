@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.gagu.gagubackend.chat.domain.ChatContents;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
+import org.gagu.gagubackend.chat.dto.request.RequestFCMSendDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseImageDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseMyChatRoomsDto;
@@ -60,4 +61,6 @@ public interface ChatService {
      * @return jpeg
      */
     ResponseImageDto generate2D(RequestChatContentsDto message) throws JsonProcessingException;
+
+    int sendMessageTo(RequestFCMSendDto requestFCMSendDto, String nickname);
 }

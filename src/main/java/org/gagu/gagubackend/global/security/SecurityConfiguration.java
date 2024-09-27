@@ -57,7 +57,8 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/profile/**",
                                 "/api/v1/auth/log-out",
                                 "/api/v1/user-info/reset",
-                                "/api/v1/chat/**").hasAnyRole("USER","WORKSHOP") // 프로필 업로드
+                                "/api/v1/chat/**",
+                                "/api/v1/fcm/**").hasAnyRole("USER","WORKSHOP") // 프로필 업로드
 
                         .requestMatchers("/api/v1/auth/**",
                                 "/chat/**",
@@ -66,7 +67,7 @@ public class SecurityConfiguration {
                         .requestMatchers(PATTERNS).permitAll()
 
                         .requestMatchers("/api/v1/**",
-                                "/api/v1/image").hasRole("USER")
+                                "/api/v1/image/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
