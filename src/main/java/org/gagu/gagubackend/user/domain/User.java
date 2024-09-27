@@ -65,6 +65,9 @@ public class User extends BaseTimeEntity implements UserDetails {
     @Column(nullable = true)
     private String profileMessage;
 
+    @Column(nullable = true) // 임시 true
+    private String FCMToken;
+
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> roles = new ArrayList<>();
 

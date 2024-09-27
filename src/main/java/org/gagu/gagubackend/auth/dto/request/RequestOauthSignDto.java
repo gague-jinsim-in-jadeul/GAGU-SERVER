@@ -12,4 +12,5 @@ public class RequestOauthSignDto {
     private String name;
     private String profileUrl;
     private String email;
+    private String FCMToken;
 }

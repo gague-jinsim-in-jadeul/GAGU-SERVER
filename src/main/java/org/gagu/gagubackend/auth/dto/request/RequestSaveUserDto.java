@@ -17,5 +17,6 @@ public class RequestSaveUserDto {
     private String profileUrl;
     private String loginType;
     private String profileMessage;
+    private String FCMToken;
     private boolean useAble;
 }
