@@ -70,6 +70,7 @@ public class AuthDAOImpl implements AuthDAO {
                             .profileUrl(requestSaveUserDto.getProfileUrl())
                             .loginType(requestSaveUserDto.getLoginType())
                             .profileMessage(requestSaveUserDto.getProfileMessage())
+                            .FCMToken(requestSaveUserDto.getFCMToken())
                             .useAble(requestSaveUserDto.isUseAble())
                             .roles(Collections.singletonList("ROLE_WORKSHOP"))
                             .build();
@@ -147,6 +148,7 @@ public class AuthDAOImpl implements AuthDAO {
                             .email(requestSaveUserDto.getEmail())
                             .profileUrl(requestSaveUserDto.getProfileUrl())
                             .loginType(requestSaveUserDto.getLoginType())
+                            .FCMToken(requestSaveUserDto.getFCMToken())
                             .useAble(requestSaveUserDto.isUseAble())
                             .roles(Collections.singletonList("ROLE_USER"))
                             .build();

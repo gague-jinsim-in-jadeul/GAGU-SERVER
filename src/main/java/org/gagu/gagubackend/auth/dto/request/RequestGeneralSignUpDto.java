@@ -14,4 +14,5 @@ public class RequestGeneralSignUpDto {
     private String profileUrl;
     private String workShopName;
     private String profileMessage;
+    private String FCMToken;
 }

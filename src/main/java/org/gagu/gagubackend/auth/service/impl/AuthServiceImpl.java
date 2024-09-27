@@ -150,6 +150,7 @@ public class AuthServiceImpl implements AuthService {
                         .phoneNumber(null)
                         .profileUrl(basicProfileUrl)
                         .loginType(LoginType.KAKAO.toString())
+                        .FCMToken(requestOauthSignDto.getFCMToken())
                         .useAble(true)
                         .build();
 
@@ -168,6 +169,7 @@ public class AuthServiceImpl implements AuthService {
                         .phoneNumber(null)
                         .profileUrl(basicProfileUrl)
                         .loginType(LoginType.GOOGLE.toString())
+                         .FCMToken(requestOauthSignDto.getFCMToken())
                         .useAble(true)
                         .build();
 
@@ -194,6 +196,7 @@ public class AuthServiceImpl implements AuthService {
                 .profileUrl(requestGeneralSignUpDto.getProfileUrl())
                 .loginType(LoginType.GENERAL.toString())
                 .profileMessage(requestGeneralSignUpDto.getProfileMessage())
+                .FCMToken(requestGeneralSignUpDto.getFCMToken())
                 .useAble(true)
                 .build();
 
