@@ -154,9 +154,9 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public int sendMessageTo(RequestFCMSendDto requestFCMSendDto, String nickname) {
+    public int sendMessageTo(RequestFCMSendDto requestFCMSendDto) {
 
-        User user = userRepository.findByNickName(nickname);
+        User user = userRepository.findByNickName(requestFCMSendDto.getSenderNickname());
         String fcmToken = user.getFCMToken();
 
         RestTemplate restTemplate = new RestTemplate();

@@ -62,5 +62,5 @@ public interface ChatService {
      */
     ResponseImageDto generate2D(RequestChatContentsDto message) throws JsonProcessingException;
 
-    int sendMessageTo(RequestFCMSendDto requestFCMSendDto, String nickname);
+    int sendMessageTo(RequestFCMSendDto requestFCMSendDto);
 }

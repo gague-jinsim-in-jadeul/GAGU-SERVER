@@ -23,13 +23,10 @@ public class FCMController {
     private final JwtTokenProvider jwtTokenProvider;
     @Operation(summary = "채팅 알림 전송", description = "채팅 전송 시 상대방 단말기에 푸쉬 알림을 전송합니다.")
     @PostMapping("/notification")
-    public ResponseEntity<?> pushMessage(@RequestBody RequestFCMSendDto requestFCMSendDto, HttpServletRequest request){
+    public ResponseEntity<?> pushMessage(@RequestBody RequestFCMSendDto requestFCMSendDto){
         log.info("[CHATTING-NOTIFICATION] send push message");
 
-        String token = jwtTokenProvider.extractToken(request);
-        String nickname = jwtTokenProvider.getUserNickName(token);
-
-        int result = chatService.sendMessageTo(requestFCMSendDto, nickname);
+        int result = chatService.sendMessageTo(requestFCMSendDto);
 
         if(result == 1){
             return ResultCode.OK.toResponseEntity();
