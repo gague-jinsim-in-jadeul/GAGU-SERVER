@@ -11,4 +11,5 @@ import lombok.*;
 public class RequestGeneralSignDto {
     private String email;
     private String password;
+    private String FCMToken;
 }
