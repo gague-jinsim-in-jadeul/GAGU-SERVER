@@ -110,13 +110,17 @@ public class AuthDAOImpl implements AuthDAO {
                     log.info("[social auth] user is available");
 
                     String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName());
-                    log.info("[social auth] refresh token : {}", refreshToken);
 
                     redisConfig.redisTemplate().opsForValue().set(user.getNickName(),
                             refreshToken,
                             jwtTokenProvider.getExpireTime(refreshToken).getTime() - System.currentTimeMillis(),
                             TimeUnit.MILLISECONDS
                     ); // put {nickname : token} redis
+                    
+                    log.info("[workshop auth] update user fcm token!");
+                    user.setFCMToken(requestSaveUserDto.getFCMToken());
+                    userRepository.save(user); // user 로그인 시 FCM 토큰 업데이트
+
                     log.info("[social auth] put token to redis success!");
 
                     log.info("[social auth] success to social login!");
@@ -192,8 +196,11 @@ public class AuthDAOImpl implements AuthDAO {
                 if (encoder.matches(requestGeneralSignDto.getPassword(),password)){ // 패스워드, 이메일 일치하는 계정 찾았을 때
                     log.info("[workshop auth] check user password success!");
 
+                    log.info("[workshop auth] update user fcm token!");
+                    tmp.setFCMToken(requestGeneralSignDto.getFCMToken());
+                    userRepository.save(tmp);
+
                     String refreshToken = jwtTokenProvider.createRefreshToken(tmp.getEmail(), tmp.getNickName());
-                    log.info("[workshop auth] refresh token : {}", refreshToken);
 
                     redisConfig.redisTemplate().opsForValue().set(tmp.getNickName(),
                             refreshToken,
