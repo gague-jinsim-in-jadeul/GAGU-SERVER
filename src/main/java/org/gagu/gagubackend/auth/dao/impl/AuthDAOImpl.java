@@ -116,7 +116,7 @@ public class AuthDAOImpl implements AuthDAO {
                             jwtTokenProvider.getExpireTime(refreshToken).getTime() - System.currentTimeMillis(),
                             TimeUnit.MILLISECONDS
                     ); // put {nickname : token} redis
-                    
+
                     log.info("[workshop auth] update user fcm token!");
                     user.setFCMToken(requestSaveUserDto.getFCMToken());
                     userRepository.save(user); // user 로그인 시 FCM 토큰 업데이트
@@ -229,6 +229,10 @@ public class AuthDAOImpl implements AuthDAO {
 
             if(encoder.matches(requestGeneralSignDto.getPassword(), password)){
                 log.info("[workshop auth] check user password success!");
+
+                log.info("[workshop auth] update user fcm token!");
+                user.setFCMToken(requestGeneralSignDto.getFCMToken());
+                userRepository.save(user);
 
                 String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName());
 
