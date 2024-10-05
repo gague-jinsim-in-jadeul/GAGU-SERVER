@@ -8,7 +8,7 @@ import org.gagu.gagubackend.chat.dto.request.RequestFCMSendDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseImageDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseMyChatRoomsDto;
-import org.gagu.gagubackend.user.dto.request.RequestUserInfoDto;
+import org.gagu.gagubackend.auth.dto.request.RequestUserInfoDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;

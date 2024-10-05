@@ -3,7 +3,7 @@ package org.gagu.gagubackend.auth.dao.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.dao.NicknameDAO;
-import org.gagu.gagubackend.user.repository.UserRepository;
+import org.gagu.gagubackend.auth.repository.UserRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicInteger;

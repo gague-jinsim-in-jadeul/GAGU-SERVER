@@ -1,4 +1,4 @@
-package org.gagu.gagubackend.user.domain;
+package org.gagu.gagubackend.auth.domain;
 
 import jakarta.persistence.*;
 import lombok.*;

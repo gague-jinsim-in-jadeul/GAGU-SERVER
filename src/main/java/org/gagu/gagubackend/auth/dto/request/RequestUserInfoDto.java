@@ -1,4 +1,4 @@
-package org.gagu.gagubackend.user.dto.request;
+package org.gagu.gagubackend.auth.dto.request;
 
 import lombok.*;
 

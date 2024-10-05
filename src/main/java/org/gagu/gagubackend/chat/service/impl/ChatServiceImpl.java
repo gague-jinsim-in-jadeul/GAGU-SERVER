@@ -20,10 +20,9 @@ import org.gagu.gagubackend.chat.dto.response.ResponseMyChatRoomsDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseToFCMMessageDto;
 import org.gagu.gagubackend.chat.service.ChatService;
 import org.gagu.gagubackend.estimate.dao.EstimateDAO;
-import org.gagu.gagubackend.user.domain.User;
-import org.gagu.gagubackend.user.dto.request.RequestUserInfoDto;
-import org.gagu.gagubackend.user.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.gagu.gagubackend.auth.domain.User;
+import org.gagu.gagubackend.auth.dto.request.RequestUserInfoDto;
+import org.gagu.gagubackend.auth.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,10 +32,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
