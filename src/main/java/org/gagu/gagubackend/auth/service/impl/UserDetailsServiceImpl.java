@@ -1,9 +1,9 @@
-package org.gagu.gagubackend.user.service.impl;
+package org.gagu.gagubackend.auth.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.gagu.gagubackend.user.domain.User;
-import org.gagu.gagubackend.user.repository.UserRepository;
+import org.gagu.gagubackend.auth.domain.User;
+import org.gagu.gagubackend.auth.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

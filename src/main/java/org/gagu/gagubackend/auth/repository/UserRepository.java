@@ -1,6 +1,6 @@
-package org.gagu.gagubackend.user.repository;
+package org.gagu.gagubackend.auth.repository;
 
-import org.gagu.gagubackend.user.domain.User;
+import org.gagu.gagubackend.auth.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
