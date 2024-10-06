@@ -65,6 +65,18 @@ public interface AuthService {
      */
     ResponseEntity<?> logOut(String token);
 
+    /**
+     * 유저 닉네임, 이메일, 주소 변경
+     * @param requestChangeUserInfoDto
+     * @param nickname
+     * @return
+     */
     ResponseEntity<?> updateUserInfo(RequestChangeUserInfoDto requestChangeUserInfoDto, String nickname);
 
+    /**
+     * 공방 정보 반환
+     * @param id
+     * @return
+     */
+    ResponseEntity<?> getWorkShopDetails(Long id);
 }
