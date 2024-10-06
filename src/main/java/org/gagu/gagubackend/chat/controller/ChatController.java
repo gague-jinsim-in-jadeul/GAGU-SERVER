@@ -99,7 +99,7 @@ public class ChatController {
         String token = jwtTokenProvider.extractToken(request);
         String nickName = jwtTokenProvider.getUserNickName(token);
 
-        Pageable pageable = PageRequest.of(page, 10, Sort.Direction.DESC,"createdAt");
+        Pageable pageable = PageRequest.of(page, 10, Sort.Direction.DESC,"createdDate");
 
         return ResponseEntity.ok(chatService.getMyChatRooms(nickName, pageable));
     }
