@@ -13,5 +13,5 @@ import java.time.LocalDateTime;
 public class ResponseMyChatRoomsDto {
     private Long id;
     private String roomName;
-    private LocalDateTime updateAt;
+    private String updateAt;
 }

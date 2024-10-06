@@ -201,7 +201,7 @@ public class ChatDAOImpl implements ChatDAO {
                         ResponseMyChatRoomsDto dto = new ResponseMyChatRoomsDto();
                         dto.setId(chatRoom.getId());
                         dto.setRoomName(chatRoom.getRoomName());
-                        dto.setUpdateAt(chatRoom.getUpdatedAt());
+                        dto.setUpdateAt(chatRoom.getModifiedDate());
                         return dto;
                     }).collect(Collectors.toList());
 
