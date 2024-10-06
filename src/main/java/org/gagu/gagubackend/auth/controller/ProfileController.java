@@ -7,8 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.dto.request.RequestAddressDto;
 import org.gagu.gagubackend.auth.dto.request.RequestChangeUserInfoDto;
 import org.gagu.gagubackend.auth.service.AuthService;
+import org.gagu.gagubackend.auth.service.ReviewService;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
 import org.gagu.gagubackend.global.security.JwtTokenProvider;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProfileController {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthService authService;
+    private final ReviewService reviewService;
     @Operation(summary = "사용자 프로필 변경", description = "사용자가 회원가입 후 프로필을 변경합니다.")
     @PostMapping("/reset")
     public ResponseEntity<?> changeFile(
@@ -83,5 +88,22 @@ public class ProfileController {
         }
 
         return authService.updateUserInfo(requestChangeUserInfoDto, nickName);
+    }
+    @Operation(summary = "공방 조회", description = "가구 제작 의뢰를 맡길 공방을 반환합니다.")
+    @GetMapping("/workshops")
+    public ResponseEntity<?> getWorkshops(@RequestParam int page){
+        Pageable pageable = PageRequest.of(page, 3,
+                Sort.by(Sort.Direction.DESC, "starsAverage")
+                        .and(Sort.by(Sort.Direction.DESC, "sum")));
+
+        return ResponseEntity.ok(reviewService.getAllWorkShop(pageable));
+    }
+    @Operation(summary = "공방 디테일 조회", description = "가구 제작 의뢰를 맡길 공방의 자세한 정보를 반환합니다.")
+    @GetMapping("/workshop/{id}")
+    public ResponseEntity<?> getWorkShopDetail(@PathVariable Long id){
+        if(id == null){
+            return ResultCode.BAD_REQUEST.toResponseEntity();
+        }
+        return authService.getWorkShopDetails(id);
     }
 }

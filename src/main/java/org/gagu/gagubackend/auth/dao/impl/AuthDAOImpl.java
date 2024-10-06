@@ -4,12 +4,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.dao.AuthDAO;
 import org.gagu.gagubackend.auth.dao.NicknameDAO;
+import org.gagu.gagubackend.auth.domain.StarReview;
 import org.gagu.gagubackend.auth.dto.request.RequestAddressDto;
 import org.gagu.gagubackend.auth.dto.request.RequestChangeUserInfoDto;
 import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignDto;
 import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
 import org.gagu.gagubackend.auth.dto.response.ResponseAuthDto;
 import org.gagu.gagubackend.auth.dto.response.ResponseProfileDto;
+import org.gagu.gagubackend.auth.dto.response.ResponseWorkShopDetailsDto;
+import org.gagu.gagubackend.auth.repository.StarReviewRepository;
 import org.gagu.gagubackend.global.config.RedisConfig;
 import org.gagu.gagubackend.global.domain.CommonResponse;
 import org.gagu.gagubackend.global.domain.enums.LoginType;
@@ -24,6 +27,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +41,7 @@ public class AuthDAOImpl implements AuthDAO {
     private final JwtTokenProvider jwtTokenProvider;
     private final NicknameDAO nicknameDAO;
     private final RedisConfig redisConfig;
+    private final StarReviewRepository starReviewRepository;
 
     @Value("${login.type.kakao.logo}")
     private String kaKaoLoginLogo;
@@ -75,6 +81,20 @@ public class AuthDAOImpl implements AuthDAO {
                             .roles(Collections.singletonList("ROLE_WORKSHOP"))
                             .build();
                     userRepository.save(user);
+
+                    log.info("[auth] saving review count table..");
+
+                    StarReview starReview = StarReview.builder()
+                            .workshopName(requestSaveUserDto.getNickName())
+                            .starsAverage(BigDecimal.valueOf(0.0))
+                            .sum(new BigDecimal(0))
+                            .count(BigInteger.valueOf(0))
+                            .workshop(user)
+                            .build();
+
+                    starReviewRepository.save(starReview);
+
+                    log.info("[auth] save review count table success!");
 
                     log.info("[sign up] save user success!");
 
@@ -383,6 +403,23 @@ public class AuthDAOImpl implements AuthDAO {
                     return ResultCode.FAIL.toResponseEntity();
                 }
             }
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> getWorkShopDetails(Long id) {
+        User user = userRepository.findById(id).get();
+        if(user == null){
+            log.info("[WORKSHOP-DETAILS] no user!");
+            return ResultCode.NOT_FOUND_USER.toResponseEntity();
+        }else{
+            ResponseWorkShopDetailsDto dto = ResponseWorkShopDetailsDto.builder()
+                    .workshopName(user.getNickName())
+                    .description(user.getProfileMessage())
+                    .address(user.getAddress())
+                    .build();
+            log.info("[WORKSHOP-DETAILS] found workshop successfully!");
+            return ResponseEntity.ok(dto);
         }
     }
 

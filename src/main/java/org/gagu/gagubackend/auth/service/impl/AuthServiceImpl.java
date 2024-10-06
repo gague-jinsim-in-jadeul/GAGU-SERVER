@@ -250,6 +250,11 @@ public class AuthServiceImpl implements AuthService {
         return authDAO.saveUserInfo(requestChangeUserInfoDto, nickname);
     }
 
+    @Override
+    public ResponseEntity<?> getWorkShopDetails(Long id) {
+        return authDAO.getWorkShopDetails(id);
+    }
+
     private RequestSaveUserDto getKakaoUserInfo(String accessToken){
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();

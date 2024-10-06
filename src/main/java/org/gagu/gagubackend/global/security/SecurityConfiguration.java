@@ -67,7 +67,8 @@ public class SecurityConfiguration {
                         .requestMatchers(PATTERNS).permitAll()
 
                         .requestMatchers("/api/v1/**",
-                                "/api/v1/image/**").hasRole("USER")
+                                "/api/v1/image/**",
+                                "/api/v1/review/write").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
