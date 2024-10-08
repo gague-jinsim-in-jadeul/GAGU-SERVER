@@ -44,12 +44,11 @@ public class ChatDAOImpl implements ChatDAO {
         log.info("[chat] create chat room");
         String userEmail = userInfoDto.getUserEmail();
         String userNickname = userInfoDto.getUserNickname();
-        String workShopEmail = requestCreateChatRoomDto.getSellerEmail();
         String workShopName = requestCreateChatRoomDto.getSellerNickname();
 
-        if (checkUserExist(userEmail, userNickname) && checkWorkshopExist(workShopEmail, workShopName)) {
+        if (checkUserExist(userEmail, userNickname) && checkWorkshopExist(workShopName)) {
             User buyer = userRepository.findByEmailAndNickName(userEmail, userNickname);
-            User workshop = userRepository.findByEmailAndNickName(workShopEmail, workShopName);
+            User workshop = userRepository.findByNickName(workShopName);
             log.info("[chat] user is exist!");
 
             log.info("[chat] is check chatroom exist....");
@@ -219,9 +218,9 @@ public class ChatDAOImpl implements ChatDAO {
         log.info("[chat] check user exist");
         return userRepository.existsByEmailAndNickName(userEmail, userNickname);
     }
-    private boolean checkWorkshopExist(String workShopEmail, String workShopName){
+    private boolean checkWorkshopExist(String workShopName){
         log.info("[chat] check workshop exist");
-        return userRepository.existsByEmailAndNickName(workShopEmail,workShopName);
+        return userRepository.existsByNickName(workShopName);
     }
     private boolean checkChatRoomExist(ChatRoom chatroom){
         return chatRoomMemberRepository.existsChatRoomMemberByRoomId(chatroom);
