@@ -26,12 +26,6 @@ public class FCMController {
     public ResponseEntity<?> pushMessage(@RequestBody RequestFCMSendDto requestFCMSendDto){
         log.info("[CHATTING-NOTIFICATION] send push message");
 
-        int result = chatService.sendMessageTo(requestFCMSendDto);
-
-        if(result == 1){
-            return ResultCode.OK.toResponseEntity();
-        }else{
-            return ResultCode.FAIL.toResponseEntity();
-        }
+        return chatService.sendMessageTo(requestFCMSendDto);
     }
 }

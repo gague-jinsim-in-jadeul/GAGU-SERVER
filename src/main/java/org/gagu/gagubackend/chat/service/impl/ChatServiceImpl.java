@@ -4,10 +4,15 @@ package org.gagu.gagubackend.chat.service.impl;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.gagu.gagubackend.chat.config.FCMConfig;
 import org.gagu.gagubackend.chat.dao.ChatDAO;
 import org.gagu.gagubackend.chat.domain.ChatContents;
 import org.gagu.gagubackend.chat.dto.request.EstimateChatContentsDto;
@@ -23,6 +28,7 @@ import org.gagu.gagubackend.estimate.dao.EstimateDAO;
 import org.gagu.gagubackend.auth.domain.User;
 import org.gagu.gagubackend.auth.dto.request.RequestUserInfoDto;
 import org.gagu.gagubackend.auth.repository.UserRepository;
+import org.gagu.gagubackend.global.domain.enums.ResultCode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,8 +38,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,6 +54,7 @@ public class ChatServiceImpl implements ChatService {
     private final EstimateDAO estimateDAO;
     private final AmazonS3Client amazonS3Client;
     private final UserRepository userRepository;
+    private final FirebaseMessaging firebaseMessaging;
     @Value("${ai.host}")
     private String AI_HOST;
     @Value("${cloud.aws.s3.bucket}")
@@ -151,70 +161,32 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public int sendMessageTo(RequestFCMSendDto requestFCMSendDto) {
+    public ResponseEntity<?> sendMessageTo(RequestFCMSendDto requestFCMSendDto) {
+        log.info("[CHATTING-NOTIFICATION] send to {}", requestFCMSendDto.getSenderNickname());
 
         User user = userRepository.findByNickName(requestFCMSendDto.getSenderNickname());
         String fcmToken = user.getFCMToken();
 
-        RestTemplate restTemplate = new RestTemplate();
+        log.info("[CHATTING-NOTIFICATION] fcm token : {}", fcmToken);
 
-        try{
-            String message = makeMessage(requestFCMSendDto, fcmToken);
+        try {
+            Notification notification = Notification.builder()
+                    .setTitle(requestFCMSendDto.getTitle())
+                    .setBody(requestFCMSendDto.getBody())
+                    .build();
 
-            restTemplate.getMessageConverters().add(0,new StringHttpMessageConverter(StandardCharsets.UTF_8));
+            Message message = Message.builder()
+                    .setToken(fcmToken)
+                    .setNotification(notification)
+                    .build();
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.add("Authorization", "Bearer "+getFirebaseAccessToken());
+            firebaseMessaging.send(message);
 
-            HttpEntity entity = new HttpEntity<>(message, headers);
-
-            ResponseEntity response = restTemplate.exchange(FIREBASE_API_URL, HttpMethod.POST, entity, String.class);
-            log.info("[CHATTING-NOTIFICATION] response status : {}", response.getStatusCode());
-
-            return response.getStatusCode() == HttpStatus.OK ? 1 : 0 ;
+            return ResultCode.OK.toResponseEntity();
         }catch (Exception e){
             e.printStackTrace();
-            return 0;
+            log.error("[CHATTING-NOTIFICATION] fail to send notification!");
+            return ResultCode.FAIL.toResponseEntity();
         }
-    }
-
-    /**
-     * @author : sonmingi
-     * @return : firebase access token
-     */
-    private String getFirebaseAccessToken(){
-        log.info("[CHATTING-NOTIFICATION] trying to issue firebase access token..");
-        byte[] bytes = FIREBASE_SECRET_KEY.getBytes(StandardCharsets.UTF_8);
-
-        try{
-            ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-            GoogleCredentials googleCredentials = GoogleCredentials
-                    .fromStream(stream)
-                    .createScoped(FIREBASE_SCOPE);
-            log.info("[CHATTING-NOTIFICATION] success to issue firebase access token!");
-
-            googleCredentials.refreshIfExpired();
-            log.info("[CHATTING-NOTIFICATION] firebase access token : {}",googleCredentials.getAccessToken().getTokenValue());
-            return googleCredentials.getAccessToken().getTokenValue();
-        }catch (Exception e){
-            log.error("[CHATTING-NOTIFICATION] fail to get firebase access token!");
-            e.printStackTrace();
-            return null;
-        }
-    }
-    private String makeMessage(RequestFCMSendDto requestFCMSendDto, String FCMToken) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        ResponseToFCMMessageDto fcmMessageDto = ResponseToFCMMessageDto.builder()
-                .message(ResponseToFCMMessageDto.Message.builder()
-                        .token(FCMToken)
-                        .notification(ResponseToFCMMessageDto.Notification.builder()
-                                .title(requestFCMSendDto.getTitle())
-                                .body(requestFCMSendDto.getBody())
-                                .image(GAGU_ICON)
-                                .build()
-                        ).build()).validateOnly(false).build();
-
-        return objectMapper.writeValueAsString(fcmMessageDto);
     }
 }
