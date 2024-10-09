@@ -83,10 +83,6 @@ public class ProfileController {
         if(requestChangeUserInfoDto.getAddress() == null){
             return ResultCode.BAD_REQUEST.toResponseEntity();
         }
-        if(requestChangeUserInfoDto.getNickname().equals(nickName)){
-            return ResultCode.ALREADY_NICKNAME.toResponseEntity();
-        }
-
         return authService.updateUserInfo(requestChangeUserInfoDto, nickName);
     }
     @Operation(summary = "공방 조회", description = "가구 제작 의뢰를 맡길 공방을 반환합니다.")

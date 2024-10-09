@@ -383,13 +383,6 @@ public class AuthDAOImpl implements AuthDAO {
                 try{
                     log.info("[auth] user is founded! checking user profile..");
 
-                    if(user.getEmail().equals(requestChangeUserInfoDto.getEmail())){
-                        return ResultCode.ALREADY_EMAIL.toResponseEntity();
-                    }
-                    if(user.getAddress().equals(requestChangeUserInfoDto.getAddress())){
-                        return ResultCode.ALREADY_ADDRESS.toResponseEntity();
-                    }
-
                     log.info("[auth] changing user info..");
                     user.setEmail(requestChangeUserInfoDto.getEmail());
                     user.setAddress(requestChangeUserInfoDto.getAddress());

@@ -43,12 +43,12 @@ public class ReviewController {
     }
     @Operation(summary = "공방 리뷰 조회", description = "사용자가 해당하는 공방의 리뷰를 조회합니다.")
     @GetMapping("/{workshopName}")
-    public ResponseEntity<?> getReviews(@PathVariable String workshopName, @RequestParam(defaultValue = "0") int page){
+    public ResponseEntity<?> getReviews(@PathVariable String workshopName, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "2") int size){
         if(workshopName == null){
             return ResultCode.FAIL.toResponseEntity();
         }
 
-        Pageable pageable = PageRequest.of(page, 3, Sort.Direction.DESC,"modifiedDate");
+        Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC,"modifiedDate");
         return ResponseEntity.ok(reviewService.getReviews(pageable, workshopName));
     }
 }
