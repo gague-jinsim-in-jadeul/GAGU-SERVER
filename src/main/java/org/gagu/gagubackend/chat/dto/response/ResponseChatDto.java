@@ -12,5 +12,5 @@ import java.time.LocalDateTime;
 public class ResponseChatDto {
    private String contents;
    private String nickName;
-   private LocalDateTime time;
+   private String time;
 }

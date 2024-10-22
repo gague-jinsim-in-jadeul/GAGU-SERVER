@@ -2,6 +2,8 @@ package org.gagu.gagubackend.estimate.dao.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.gagu.gagubackend.auth.domain.User;
+import org.gagu.gagubackend.auth.repository.UserRepository;
 import org.gagu.gagubackend.chat.dto.request.EstimateChatContentsDto;
 import org.gagu.gagubackend.estimate.dao.EstimateDAO;
 import org.gagu.gagubackend.estimate.domain.Estimate;
@@ -28,14 +30,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class EstimateDAOImpl implements EstimateDAO {
     private final EstimateRepository estimateRepository;
+    private final UserRepository userRepository;
     @Override
     public ResponseEntity<?> saveFurniture(RequestSaveFurnitureDto requestSaveFurnitureDto, String nickname) {
         Date nowDate = new Date();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
         String formattedDate = simpleDateFormat.format(nowDate);
 
+        User user = userRepository.findByNickName(nickname);
+
         Estimate estimate = Estimate.builder()
-                .nickName(nickname)
+                .nickName(user)
                 .furnitureName(requestSaveFurnitureDto.getFurnitureName())
                 .furniture2DUrl(requestSaveFurnitureDto.getFurniture2DUrl())
                 .furniture3DObj(requestSaveFurnitureDto.getFurniture3DObj())
@@ -59,7 +64,8 @@ public class EstimateDAOImpl implements EstimateDAO {
     public Page<ResponseMyFurnitureDto> getMyFurniture(String nickname, Pageable pageable) {
         try{
             log.info("[GET-MY-FURNITURE] collecting my furnitures...");
-            Page<Estimate> estimates = estimateRepository.findByNickName(nickname, pageable);
+            User user = userRepository.findByNickName(nickname);
+            Page<Estimate> estimates = estimateRepository.findByNickName(user, pageable);
 
             List<ResponseMyFurnitureDto> responseMyFurnitureDtos = estimates.stream()
                     .map(estimate -> {
@@ -87,8 +93,10 @@ public class EstimateDAOImpl implements EstimateDAO {
     @Override
     public ResponseEntity<?> deleteFurniture(Long id) {
         try{
+            Estimate estimate = estimateRepository.findById(id).get();
+            estimate.setNickName(null);
             log.info("[DELETE-MY-FURNITURE] deleting my furniture...");
-            estimateRepository.deleteById(id);
+            estimateRepository.delete(estimate);
             log.info("[DELETE-MY-FURNITURE] delete my furniture successfully!");
             return ResultCode.OK.toResponseEntity();
         }catch (Exception e){

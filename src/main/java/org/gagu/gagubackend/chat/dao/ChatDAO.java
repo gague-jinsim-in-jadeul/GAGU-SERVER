@@ -3,6 +3,7 @@ package org.gagu.gagubackend.chat.dao;
 import org.gagu.gagubackend.chat.domain.ChatContents;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
+import org.gagu.gagubackend.chat.dto.response.ResponseChatContentsDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseMyChatRoomsDto;
 import org.gagu.gagubackend.auth.dto.request.RequestUserInfoDto;
@@ -42,7 +43,7 @@ public interface ChatDAO {
      * @param roomNumber
      * @return page
      */
-    Page<ChatContents> getChatContents(String nickname, Pageable pageable, Long roomNumber);
+    Page<ResponseChatContentsDto> getChatContents(String nickname, Pageable pageable, Long roomNumber);
 
     /**
      * 사용자가 속한 채팅방을 조회

@@ -5,6 +5,7 @@ import org.gagu.gagubackend.chat.domain.ChatContents;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
 import org.gagu.gagubackend.chat.dto.request.RequestFCMSendDto;
+import org.gagu.gagubackend.chat.dto.response.ResponseChatContentsDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseImageDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseMyChatRoomsDto;
@@ -45,7 +46,7 @@ public interface ChatService {
      * @param roomId
      * @return
      */
-    Page<ChatContents> getChatContents(String nickname, Pageable pageable, Long roomId);
+    Page<ResponseChatContentsDto> getChatContents(String nickname, Pageable pageable, Long roomId);
 
     /**
      * 내가 속한 채팅방들 반환

@@ -13,6 +13,10 @@ import org.gagu.gagubackend.auth.dto.response.ResponseAuthDto;
 import org.gagu.gagubackend.auth.dto.response.ResponseProfileDto;
 import org.gagu.gagubackend.auth.dto.response.ResponseWorkShopDetailsDto;
 import org.gagu.gagubackend.auth.repository.StarReviewRepository;
+import org.gagu.gagubackend.chat.domain.ChatRoom;
+import org.gagu.gagubackend.chat.repository.ChatRoomRepository;
+import org.gagu.gagubackend.estimate.domain.Estimate;
+import org.gagu.gagubackend.estimate.repository.EstimateRepository;
 import org.gagu.gagubackend.global.config.RedisConfig;
 import org.gagu.gagubackend.global.domain.CommonResponse;
 import org.gagu.gagubackend.global.domain.enums.LoginType;
@@ -32,6 +36,7 @@ import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -41,7 +46,9 @@ public class AuthDAOImpl implements AuthDAO {
     private final JwtTokenProvider jwtTokenProvider;
     private final NicknameDAO nicknameDAO;
     private final RedisConfig redisConfig;
+    private final ChatRoomRepository chatRoomRepository;
     private final StarReviewRepository starReviewRepository;
+    private final EstimateRepository estimateRepository;
 
     @Value("${login.type.kakao.logo}")
     private String kaKaoLoginLogo;
@@ -382,13 +389,21 @@ public class AuthDAOImpl implements AuthDAO {
             }else{
                 try{
                     log.info("[auth] user is founded! checking user profile..");
-
                     log.info("[auth] changing user info..");
                     user.setEmail(requestChangeUserInfoDto.getEmail());
                     user.setAddress(requestChangeUserInfoDto.getAddress());
                     user.setNickName(requestChangeUserInfoDto.getNickname());
 
+                    log.info("[auth] user role : {}", user.getRoles());
+
                     userRepository.save(user);
+
+                    if(user.getRoles().get(0).equals("ROLE_WORKSHOP")){
+                        updateWorkshopName(nickname, requestChangeUserInfoDto.getNickname());
+                    }else{
+                        updateUserNickName(nickname, requestChangeUserInfoDto.getNickname());
+                    }
+
                     log.info("[auth] update user info successfully!");
                     return ResultCode.OK.toResponseEntity();
                 }catch (Exception e){
@@ -414,6 +429,53 @@ public class AuthDAOImpl implements AuthDAO {
             log.info("[WORKSHOP-DETAILS] found workshop successfully!");
             return ResponseEntity.ok(dto);
         }
+    }
+
+    private void updateUserNickName(String nickname, String changeNickname){
+        log.info("[auth] update user nickname....");
+        List<ChatRoom> chatLst = chatRoomRepository.findAllByRoomNameContains(nickname);
+        chatLst.stream().map(v ->{
+            String roomName = v.getRoomName();
+            roomName= roomName.replace(nickname, changeNickname);
+            v.setRoomName(roomName);
+            chatRoomRepository.save(v);
+            return null;
+        }).collect(Collectors.toList());
+    }
+
+    private void updateWorkshopName(String nickname, String changeNickname){
+
+        log.info("[auth] update chat room workshop name....");
+        List<ChatRoom> chatLst = chatRoomRepository.findAllByRoomNameContains(nickname);
+        chatLst.stream().map(v ->{
+            String roomName = v.getRoomName();
+            roomName= roomName.replace(nickname, changeNickname);
+            v.setRoomName(roomName);
+            chatRoomRepository.save(v);
+            return null;
+        }).collect(Collectors.toList());
+
+        log.info("[auth] update estimate workshop name....");
+        List<Estimate> estimateList = estimateRepository.findAllByMakerNameContains(nickname);
+        estimateList.stream().map(v ->{
+            String makerName = v.getMakerName();
+            makerName = makerName.replace(nickname, changeNickname);
+            v.setMakerName(makerName);
+            estimateRepository.save(v);
+            return null;
+        }).collect(Collectors.toList());
+
+        log.info("[auth] update start review workshop name....");
+
+        List<StarReview> starReviewList = starReviewRepository.findAllByWorkshopNameContains(nickname);
+        starReviewList.stream().map(v ->{
+            String makerName = v.getWorkshopName();
+            makerName = makerName.replace(nickname, changeNickname);
+            v.setWorkshopName(makerName);
+            starReviewRepository.save(v);
+            return null;
+        }).collect(Collectors.toList());
+        log.info("[auth] update success!");
     }
 
     private boolean checkUserExist(String email, String loginType){

@@ -19,10 +19,7 @@ import org.gagu.gagubackend.chat.dto.request.EstimateChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
 import org.gagu.gagubackend.chat.dto.request.RequestFCMSendDto;
-import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
-import org.gagu.gagubackend.chat.dto.response.ResponseImageDto;
-import org.gagu.gagubackend.chat.dto.response.ResponseMyChatRoomsDto;
-import org.gagu.gagubackend.chat.dto.response.ResponseToFCMMessageDto;
+import org.gagu.gagubackend.chat.dto.response.*;
 import org.gagu.gagubackend.chat.service.ChatService;
 import org.gagu.gagubackend.estimate.dao.EstimateDAO;
 import org.gagu.gagubackend.auth.domain.User;
@@ -93,7 +90,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public Page<ChatContents> getChatContents(String nickname, Pageable pageable, Long roomNumber) {
+    public Page<ResponseChatContentsDto> getChatContents(String nickname, Pageable pageable, Long roomNumber) {
         return chatDAO.getChatContents(nickname,pageable,roomNumber);
     }
 
