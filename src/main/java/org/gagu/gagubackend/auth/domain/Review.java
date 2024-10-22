@@ -20,9 +20,6 @@ public class Review extends BaseTimeEntity {
     private Long id;
 
     @Column(nullable = false)
-    private String writer; // 작성자 닉네임
-
-    @Column(nullable = false)
     private String workshopName; // 공방 이름
 
     @Column(nullable = false, length = 900)
@@ -39,4 +36,8 @@ public class Review extends BaseTimeEntity {
 
     @Column(nullable = false, precision = 2, scale = 1) // 최대 2자리 1.5, 12...
     private BigDecimal stars; // 별점
+
+    @ManyToOne
+    @JoinColumn
+    private User writer; // 작성자 닉네임
 }

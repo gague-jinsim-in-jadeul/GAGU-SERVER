@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface ChatRoomRepository extends JpaRepository<ChatRoom,Long> {
     Page<ChatRoom> findByIdIn(List<Long> roomIds, Pageable pageable);
+    List<ChatRoom> findAllByRoomNameContains(String nickname);
 }

@@ -8,6 +8,7 @@ import org.gagu.gagubackend.chat.domain.ChatRoom;
 import org.gagu.gagubackend.chat.domain.ChatRoomMember;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
+import org.gagu.gagubackend.chat.dto.response.ResponseChatContentsDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseMyChatRoomsDto;
 import org.gagu.gagubackend.chat.repository.ChatContentsRepository;
@@ -26,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -142,10 +144,12 @@ public class ChatDAOImpl implements ChatDAO {
     @Override
     public ResponseChatDto saveMessage(RequestChatContentsDto requestChatContentsDto, Long roomId, String nickname) {
 
+        User user = userRepository.findByNickName(nickname);
+
         // 저장되는 채팅 내역
         ChatContents chatContents = ChatContents.builder()
-                .sendTime(LocalDateTime.now())
-                .sender(nickname)
+                .sendTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .sender(user)
                 .message(requestChatContentsDto.getContents())
                 .chatRoomId(roomId)
                 .build();
@@ -153,7 +157,7 @@ public class ChatDAOImpl implements ChatDAO {
         // 실제 전송되는 메세지
         ResponseChatDto responseChatDto = ResponseChatDto.builder()
                 .contents(chatContents.getMessage())
-                .nickName(chatContents.getSender())
+                .nickName(user.getNickName())
                 .time(chatContents.getSendTime())
                 .build();
 
@@ -163,14 +167,28 @@ public class ChatDAOImpl implements ChatDAO {
     }
 
     @Override
-    public Page<ChatContents> getChatContents(String nickname, Pageable pageable, Long roomNumber) {
+    public Page<ResponseChatContentsDto> getChatContents(String nickname, Pageable pageable, Long roomNumber) {
         log.info("[chat] get chat contents room number : {}",roomNumber);
         User user = userRepository.findByNickName(nickname);
         Optional<ChatRoom> chatRoomList = chatRoomRepository.findById(roomNumber);
         if(!chatRoomList.isEmpty()){
             ChatRoom chatRoom = chatRoomList.get();
             if(checkMember(chatRoom,user)){
-                return chatContentsRepository.findByChatRoomId(roomNumber,pageable);
+                Page<ChatContents> contentsList = chatContentsRepository.findByChatRoomId(roomNumber,pageable);
+
+                List<ResponseChatContentsDto> contentsDtoList = contentsList.stream()
+                        .map(v -> {
+                            ResponseChatContentsDto dto = new ResponseChatContentsDto();
+                            dto.setSendTime(v.getSendTime());
+                            dto.setSender(v.getSender().getNickName());
+                            dto.setMessage(v.getMessage());
+                            dto.setChatRoomId(v.getChatRoomId());
+                            return dto;
+
+                        }).collect(Collectors.toList());
+
+                return new PageImpl<>(contentsDtoList, pageable, contentsList.getTotalElements());
+
             }else{
                 throw new NotMemberException("채팅방 조회 권한이 없습니다.");
             }

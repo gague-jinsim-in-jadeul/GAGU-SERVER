@@ -5,10 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.dao.ReviewDAO;
 import org.gagu.gagubackend.auth.domain.Review;
 import org.gagu.gagubackend.auth.domain.StarReview;
+import org.gagu.gagubackend.auth.domain.User;
 import org.gagu.gagubackend.auth.dto.request.RequestWriteReviewDto;
 import org.gagu.gagubackend.auth.dto.response.ResponseWorkshopDto;
 import org.gagu.gagubackend.auth.repository.ReviewRepository;
 import org.gagu.gagubackend.auth.repository.StarReviewRepository;
+import org.gagu.gagubackend.auth.repository.UserRepository;
 import org.gagu.gagubackend.chat.dto.response.ResponseReviewDto;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
 import org.springframework.data.domain.Page;
@@ -29,12 +31,15 @@ import java.util.stream.Collectors;
 public class ReviewDAOImpl implements ReviewDAO {
     private final ReviewRepository reviewRepository;
     private final StarReviewRepository starReviewRepository;
+    private final UserRepository userRepository;
     @Override
     public ResponseEntity<?> saveReview(RequestWriteReviewDto dto, String nickname) {
         log.info("[SAVE-REVIEW] saving review.. ");
         try{
+            User user = userRepository.findByNickName(nickname);
+
             Review review = Review.builder()
-                    .writer(nickname)
+                    .writer(user)
                     .workshopName(dto.getWorkshopName())
                     .description(dto.getDescription())
                     .reviewPhoto1(dto.getReviewPhoto1())
@@ -75,7 +80,7 @@ public class ReviewDAOImpl implements ReviewDAO {
             List<ResponseReviewDto> dtoList = reviews.stream()
                     .map(review -> {
                         ResponseReviewDto dto = new ResponseReviewDto();
-                        dto.setWriter(review.getWriter());
+                        dto.setWriter(review.getWriter().getNickName());
                         dto.setDate(review.getModifiedDate());
                         dto.setDescription(review.getDescription());
                         dto.setStars(review.getStars());
