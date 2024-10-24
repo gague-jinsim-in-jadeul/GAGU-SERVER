@@ -77,9 +77,6 @@ public class ProfileController {
         }
         String nickName = jwtTokenProvider.getUserNickName(token);
 
-        if(requestChangeUserInfoDto.getEmail() == null){
-            return ResultCode.BAD_REQUEST.toResponseEntity();
-        }
         if(requestChangeUserInfoDto.getAddress() == null){
             return ResultCode.BAD_REQUEST.toResponseEntity();
         }

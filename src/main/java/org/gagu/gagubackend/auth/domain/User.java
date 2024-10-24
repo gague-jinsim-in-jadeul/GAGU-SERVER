@@ -43,6 +43,9 @@ public class User extends BaseTimeEntity implements UserDetails {
     @Column
     private String phoneNumber;
 
+    @Column(nullable = true)
+    private String resourceId;
+
     @Column(nullable = false)
     private String email;
 
