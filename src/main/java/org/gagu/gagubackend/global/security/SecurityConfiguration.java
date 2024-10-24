@@ -55,7 +55,6 @@ public class SecurityConfiguration {
                 )
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/api/v1/profile/**",
-                                "/api/v1/auth/log-out",
                                 "/api/v1/user-info/reset",
                                 "/api/v1/chat/**",
                                 "/api/v1/fcm/**").hasAnyRole("USER","WORKSHOP") // 프로필 업로드
@@ -63,6 +62,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/auth/**",
                                 "/chat/**",
                                 "/chat-2d/**",
+                                "/api/v1/auth/log-out",
                                 "/api/v1/auth/profile-upload").permitAll() // 채팅
                         .requestMatchers(PATTERNS).permitAll()
 

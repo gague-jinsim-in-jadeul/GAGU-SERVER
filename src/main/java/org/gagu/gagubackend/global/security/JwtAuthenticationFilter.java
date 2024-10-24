@@ -49,17 +49,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        log.info("[JwtAuthenticationFilter] should not filter url : {}",request.getServletPath());
-        return passUrl.stream().anyMatch(url -> new AntPathMatcher().match(url, request.getServletPath()));
+        boolean result = passUrl.stream().anyMatch(url -> new AntPathMatcher().match(url, request.getServletPath()));
+        log.info("[JwtAuthentication Filter] should not filter url : {} no filter : {}",request.getServletPath(), result);
+        return result;
     }
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.info("[jwtauthentication filter] : {}", request.toString());
+        log.info("[doFilterInternal] : {}", request.getServletPath());
         String token = jwtTokenProvider.extractToken(request);
+
+        if(request.getServletPath().equals("/api/v1/auth/log-out")){
+            log.info("[doFilterInternal] : log out api!");
+            filterChain.doFilter(request,response);
+            return;
+        }
 
         if (!token.isEmpty() && jwtTokenProvider.validateToken(token)) {
             String isLogout = (String) redisConfig.redisTemplate().opsForValue().get(token); // redis storage {token : logout} 있는지 확인
-            log.info("[JwtAuthentication Filter] redis key : {}, value : {}", token, isLogout);
+            log.info("[doFilterInternal] redis key : {}, value : {}", token, isLogout);
 
             if (!ObjectUtils.isEmpty(isLogout)) { // 로그아웃 된 토큰일 시
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 반환
