@@ -130,11 +130,15 @@ public class AuthDAOImpl implements AuthDAO {
                 }
             }
         } else { // 소셜 로그인일 경우
-            if (checkUserExist(requestSaveUserDto.getEmail(), requestSaveUserDto.getLoginType())) { // 소셜 로그인 구매자 조회
+            if (checkUserExist(requestSaveUserDto.getResourceId(), requestSaveUserDto.getLoginType())) { // 소셜 로그인 구매자 조회
                 log.info("[social auth] user is exist!");
-                User user = userRepository.findByEmailAndLoginType(requestSaveUserDto.getEmail(), requestSaveUserDto.getLoginType());
+                User user = userRepository.findByResourceIdAndLoginType(requestSaveUserDto.getResourceId(), requestSaveUserDto.getLoginType());
                 if (user.isEnabled()) {
                     log.info("[social auth] user is available");
+
+                    if(!user.getEmail().equals(requestSaveUserDto.getEmail())){
+                        user.setEmail(requestSaveUserDto.getEmail());
+                    }
 
                     String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName());
 
@@ -174,6 +178,7 @@ public class AuthDAOImpl implements AuthDAO {
                     User user = User.builder()
                             .name(requestSaveUserDto.getName())
                             .nickName(nickname)
+                            .resourceId(requestSaveUserDto.getResourceId())
                             .password(requestSaveUserDto.getPassword())
                             .phoneNumber(requestSaveUserDto.getPhoneNumber())
                             .email(requestSaveUserDto.getEmail())
@@ -390,7 +395,6 @@ public class AuthDAOImpl implements AuthDAO {
                 try{
                     log.info("[auth] user is founded! checking user profile..");
                     log.info("[auth] changing user info..");
-                    user.setEmail(requestChangeUserInfoDto.getEmail());
                     user.setAddress(requestChangeUserInfoDto.getAddress());
                     user.setNickName(requestChangeUserInfoDto.getNickname());
 
@@ -478,8 +482,8 @@ public class AuthDAOImpl implements AuthDAO {
         log.info("[auth] update success!");
     }
 
-    private boolean checkUserExist(String email, String loginType){
-        return userRepository.existsByEmailAndLoginType(email, loginType);
+    private boolean checkUserExist(String resourceId, String loginType){
+        return userRepository.existsByResourceIdAndLoginType(resourceId, loginType);
     }
     private boolean checkWorkshopExist(String nickname, String loginType){
         return userRepository.existsByNickNameAndLoginType(nickname,loginType);
