@@ -26,16 +26,7 @@ public class Estimate {
     private String furniture2DUrl; // 2D URL
 
     @Column(nullable = false)
-    private String furniture3DObj; // 3D OBJ URL
-
-    @Column(nullable = false)
-    private String furniture3DMtl; // 3D MTL URL
-
-    @Column(nullable = false)
-    private String furniture3DTexture1; // 3D Texture1 URL
-
-    @Column(nullable = false)
-    private String furniture3DTexture2; // 3D Texture2 URL
+    private String furniture3DUrl; // 3D OBJ URL
 
     @Column(nullable = false)
     private String createdTime; // 생성 시간
