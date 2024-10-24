@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -33,9 +34,6 @@ public class EstimateDAOImpl implements EstimateDAO {
     private final UserRepository userRepository;
     @Override
     public ResponseEntity<?> saveFurniture(RequestSaveFurnitureDto requestSaveFurnitureDto, String nickname) {
-        Date nowDate = new Date();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
-        String formattedDate = simpleDateFormat.format(nowDate);
 
         User user = userRepository.findByNickName(nickname);
 
@@ -43,11 +41,8 @@ public class EstimateDAOImpl implements EstimateDAO {
                 .nickName(user)
                 .furnitureName(requestSaveFurnitureDto.getFurnitureName())
                 .furniture2DUrl(requestSaveFurnitureDto.getFurniture2DUrl())
-                .furniture3DObj(requestSaveFurnitureDto.getFurniture3DObj())
-                .furniture3DMtl(requestSaveFurnitureDto.getFurniture3DMtl())
-                .furniture3DTexture1(requestSaveFurnitureDto.getFurniture3DTexture1())
-                .furniture3DTexture2(requestSaveFurnitureDto.getFurniture3DTexture2())
-                .createdTime(formattedDate)
+                .furniture3DUrl(requestSaveFurnitureDto.getFurniture3DUrl())
+                .createdTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .build();
         try{
             estimateRepository.save(estimate);
@@ -72,10 +67,7 @@ public class EstimateDAOImpl implements EstimateDAO {
                         ResponseMyFurnitureDto dto = new ResponseMyFurnitureDto();
                         dto.setId(estimate.getId());
                         dto.setFurniture2DUrl(estimate.getFurniture2DUrl());
-                        dto.setFurniture3DObj(estimate.getFurniture3DObj());
-                        dto.setFurniture3DMtl(estimate.getFurniture3DMtl());
-                        dto.setFurniture3DTexture1(estimate.getFurniture3DTexture1());
-                        dto.setFurniture3DTexture2(estimate.getFurniture3DTexture2());
+                        dto.setFurniture3DUrl(estimate.getFurniture3DUrl());
                         dto.setFurnitureName(estimate.getFurnitureName());
                         dto.setCreatedDate(estimate.getCreatedTime());
                         return dto;
@@ -126,10 +118,7 @@ public class EstimateDAOImpl implements EstimateDAO {
         ResponseCompleteEstimate responseCompleteEstimate = new ResponseCompleteEstimate();
         responseCompleteEstimate.setId(estimate.getId());
         responseCompleteEstimate.setFurnitureName(estimate.getFurnitureName());
-        responseCompleteEstimate.setFurniture3DObj(estimate.getFurniture3DObj());
-        responseCompleteEstimate.setFurniture3DMtl(estimate.getFurniture3DMtl());
-        responseCompleteEstimate.setFurniture3DTexture1(estimate.getFurniture3DTexture1());
-        responseCompleteEstimate.setFurniture3DTexture2(estimate.getFurniture3DTexture2());
+        responseCompleteEstimate.setFurniture3DUrl(estimate.getFurniture3DUrl());
         responseCompleteEstimate.setCreatedDate(estimate.getCreatedTime());
         responseCompleteEstimate.setPrice(estimateChatContentsDto.getPrice());
         return responseCompleteEstimate;

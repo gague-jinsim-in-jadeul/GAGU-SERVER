@@ -29,22 +29,22 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/image")
 @RequiredArgsConstructor
 @Slf4j
 public class ImageController {
-    private final JwtTokenProvider jwtTokenProvider;
     private final AmazonS3Client amazonS3Client;
     private final ChatService chatService;
     private final SimpMessagingTemplate template;
-    private final RedisConfig redisConfig;
 
     @Value("${stable.fast.3d}")
     private String STABLE_FAST_3D;
@@ -60,27 +60,20 @@ public class ImageController {
             log.error("[3D-rendering] no file!");
             return ResultCode.BAD_REQUEST.toResponseEntity();
         }
-
         log.info("[3D-rendering] 2D file : {}",file.getOriginalFilename());
         // ByteArrayResource 생성 시 getFilename() 메서드 오버라이드
-        ByteArrayResource byteArrayResource = new ByteArrayResource(file.getBytes()){ // 익명 클래스 생성
+        ByteArrayResource byteArrayResource = new ByteArrayResource(file.getBytes()) {
             @Override
-            public String getFilename() { // 인스턴스가 사용 될 때 메서드가 호출됨.
+            public String getFilename() {
                 return file.getOriginalFilename(); // 파일 이름 제공
             }
         };
-
-
-
         log.info("[3D-rendering] create 3D by 2D!");
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", STABLE_DIFFUSTION_TOKEN);
-
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("image", byteArrayResource);
-
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
         try{
             log.info("[3D-rendering] rendering.......");
             RestTemplate restTemplate = new RestTemplate();
@@ -90,97 +83,22 @@ public class ImageController {
                     requestEntity,
                     byte[].class
             );
-
             if(response.getStatusCode() == HttpStatus.OK){ // 정상 응답 시
                 log.info("[3D-rendering] rendering success!");
-
-                // glb 임시 파일 저장
-                String glbFileName = "3d-rendering" + System.currentTimeMillis() + ".glb";
-                Files.write(Path.of(glbFileName), response.getBody());
-
-                Scene scene = new Scene();
-                ObjSaveOptions saveObjOpts = new ObjSaveOptions();
-                saveObjOpts.setExportTextures(true);
-
-                scene.open(glbFileName); // glb 터치
-                String objFileName = "3d-rendering"+System.currentTimeMillis()+".obj";
-                scene.save(objFileName, saveObjOpts);
-
-                // glb 삭제
+                String filename = "3d-rendering" + System.currentTimeMillis() + ".glb";
+                ObjectMetadata data = new ObjectMetadata();
+                data.setContentType("model/gltf-binary"); // 파일 타입
+                data.setContentLength(response.getBody().length); // 파일 사이즈
                 try{
-                    log.info("[3D-rendering] delete glb file!");
-                    Files.delete(Path.of(glbFileName));
-                }catch (Exception e){
-                    log.error("[3D-rendering] fail to delete glb file!");
+                    log.info("[3D-rendering] try to upload on S3");
+                    amazonS3Client.putObject(bucket, filename, new ByteArrayInputStream(response.getBody()), data);
+                    log.info("[3D-rendering] successfully upload to S3!");
+                    String glbUrl = amazonS3Client.getUrl(bucket,filename).toString();
+                    return ResponseEntity.ok().body(Map.of("url", glbUrl));
+                } catch (Exception e){
+                    log.error("[3D-rendering] fail to upload on S3");
                     e.printStackTrace();
                 }
-
-                log.info("[3D-rendering] trying to upload 4 files on s3..");
-                ObjectMetadata data = new ObjectMetadata(); // obj data
-                data.setContentType("application/octet-stream"); // 파일 타입
-                data.setContentLength(new File(objFileName).length()); // 파일 사이즈
-
-                Response3DDto response3dDto = new Response3DDto();
-
-                // obj upload
-                try{
-                    log.info("[3D-rendering] trying to upload obj file on s3..");
-                    amazonS3Client.putObject(bucket,objFileName, new FileInputStream(objFileName),data);
-                    log.info("[3D-rendering] success to upload obj file!");
-                    String objUrl = amazonS3Client.getResourceUrl(bucket,objFileName);
-                    response3dDto.setObjUrl(objUrl);
-                    Files.delete(Path.of(objFileName));
-                }catch (Exception e){
-                    log.error("[3D-rendering] fail to upload obj file!");
-                    e.printStackTrace();
-                }
-
-                // mtl upload
-                try{
-                    log.info("[3D-rendering] trying to upload mtl file on s3..");
-                    data = new ObjectMetadata();
-                    data.setContentType("text/plain");
-                    String mtlFileName = objFileName.replace(".obj",".mtl");
-                    data.setContentLength(new File(mtlFileName).length());
-                    amazonS3Client.putObject(bucket,mtlFileName, new FileInputStream(mtlFileName),data);
-                    String mtlUrl = amazonS3Client.getResourceUrl(bucket,mtlFileName);
-                    response3dDto.setMtlUrl(mtlUrl);
-                    Files.delete(Path.of(mtlFileName));
-                }catch (Exception e){
-                    log.error("[3D-rendering] fail to upload mtl file!");
-                    e.printStackTrace();
-                }
-                try{
-                    log.info("[3D-rendering] trying to upload texture_1 file on s3..");
-                    data = new ObjectMetadata();
-                    String texture_1 = "texture_1.jpg";
-                    data.setContentType("image/jpeg");
-                    data.setContentLength(new File(texture_1).length());
-                    amazonS3Client.putObject(bucket,texture_1, new FileInputStream(texture_1),data);
-                    String texture_1_Url = amazonS3Client.getResourceUrl(bucket,texture_1);
-                    response3dDto.setTexture_1_Url(texture_1_Url);
-                    Files.delete(Path.of(texture_1));
-                }catch (Exception e) {
-                    log.error("[3D-rendering] fail to upload texture_1 file!");
-                    e.printStackTrace();
-                }
-                try{
-                    log.info("[3D-rendering] trying to upload texture_2 file on s3..");
-                    data = new ObjectMetadata();
-                    String texture_2 = "texture_2.jpg";
-                    data.setContentType("image/jpeg");
-                    data.setContentLength(new File(texture_2).length());
-                    amazonS3Client.putObject(bucket,texture_2, new FileInputStream(texture_2),data);
-                    String texture_2_Url = amazonS3Client.getResourceUrl(bucket,texture_2);
-                    response3dDto.setTexture_2_Url(texture_2_Url);
-                    Files.delete(Path.of(texture_2));
-                }catch (Exception e) {
-                    log.error("[3D-rendering] fail to upload texture_1 file!");
-                    e.printStackTrace();
-                }
-
-                return ResponseEntity.ok().body(response3dDto);
-
             }else{
                 return ResultCode.FAIL.toResponseEntity();
             }
@@ -189,6 +107,7 @@ public class ImageController {
             e.printStackTrace();
             return ResultCode.FAIL.toResponseEntity();
         }
+        return null;
     }
     @MessageMapping("/gagu-chat/2d") // mapping ex)/pub/gagu-chat/2d
     public void chattingWith2D(RequestChatContentsDto message,

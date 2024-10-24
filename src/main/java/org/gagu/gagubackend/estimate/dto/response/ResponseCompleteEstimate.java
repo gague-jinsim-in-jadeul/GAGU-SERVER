@@ -11,10 +11,7 @@ import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
 public class ResponseCompleteEstimate extends ResponseChatDto {
     private Long id;
     private String furnitureName;
-    private String furniture3DObj;
-    private String furniture3DMtl;
-    private String furniture3DTexture1;
-    private String furniture3DTexture2;
+    private String furniture3DUrl;
     private String createdDate;
     private String price;
 }

@@ -56,14 +56,6 @@ public class ChatServiceImpl implements ChatService {
     private String AI_HOST;
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
-    @Value("${firebase.secret.key}")
-    private String FIREBASE_SECRET_KEY;
-    @Value("${firebase.scope}")
-    private String FIREBASE_SCOPE;
-    @Value("${gagu.icon}")
-    private String GAGU_ICON;
-    @Value("${firebase.api.url}")
-    private String FIREBASE_API_URL;
 
     @Override
     public ResponseEntity<?> createChatRoom(RequestUserInfoDto userInfoDto, RequestCreateChatRoomDto requestCreateChatRoomDto) {
