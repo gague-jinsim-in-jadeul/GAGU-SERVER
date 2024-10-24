@@ -358,12 +358,12 @@ public class AuthDAOImpl implements AuthDAO {
 
     @Override
     public ResponseEntity<?> deleteToken(String token){
-        Authentication authentication = jwtTokenProvider.getAuthentication(token);
-        log.info("[auth] logout user name : {}", authentication.getName());
+        String nickName = jwtTokenProvider.getUserNickName(token);
+        log.info("[auth] logout user name : {}", nickName);
 
-        if (redisConfig.redisTemplate().opsForValue().get(authentication.getName())!=null){ // refresh token 이 있을 경우
+        if (redisConfig.redisTemplate().opsForValue().get(nickName)!=null){ // refresh token 이 있을 경우
 
-            redisConfig.redisTemplate().delete(authentication.getName()); // refresh token 삭제
+            redisConfig.redisTemplate().delete(nickName); // refresh token 삭제
 
             redisConfig.redisTemplate().opsForValue().set(token, // save {token : logout}
                     "logout",

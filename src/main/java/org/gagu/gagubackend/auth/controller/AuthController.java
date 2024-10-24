@@ -169,6 +169,7 @@ public class AuthController {
     @DeleteMapping("/log-out")
     public ResponseEntity<?> logOut(HttpServletRequest request){
         String token = jwtTokenProvider.extractToken(request);
+        log.info("[logout] token : {}",token);
 
         if(token == null){
             log.error("[logout] token is null!");
