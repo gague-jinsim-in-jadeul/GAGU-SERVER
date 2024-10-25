@@ -2,8 +2,7 @@ package org.gagu.gagubackend.chat.controller;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.aspose.threed.ObjSaveOptions;
-import com.aspose.threed.Scene;
+import com.aspose.threed.*;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,17 +83,32 @@ public class ImageController {
                     byte[].class
             );
             if(response.getStatusCode() == HttpStatus.OK){ // 정상 응답 시
+
                 log.info("[3D-rendering] rendering success!");
                 String filename = "3d-rendering" + System.currentTimeMillis() + ".glb";
+
+                Files.write(Path.of(filename), response.getBody()); // 파일 임시 저장
+                Scene scene = Scene.fromFile(filename);
+
+                String gltfFileName = filename.replace(".glb", ".gltf");
+
+                GltfSaveOptions opt = new GltfSaveOptions(FileContentType.ASCII);
+                opt.setEmbedAssets(true);
+
+                scene.save(gltfFileName, opt);
+
                 ObjectMetadata data = new ObjectMetadata();
                 data.setContentType("model/gltf-binary"); // 파일 타입
-                data.setContentLength(response.getBody().length); // 파일 사이즈
+                data.setContentLength(new File(gltfFileName).length()); // 파일 사이즈
                 try{
                     log.info("[3D-rendering] try to upload on S3");
-                    amazonS3Client.putObject(bucket, filename, new ByteArrayInputStream(response.getBody()), data);
+                    amazonS3Client.putObject(bucket, gltfFileName, new FileInputStream(gltfFileName), data);
                     log.info("[3D-rendering] successfully upload to S3!");
-                    String glbUrl = amazonS3Client.getUrl(bucket,filename).toString();
-                    return ResponseEntity.ok().body(Map.of("url", glbUrl));
+                    String gltfUrl = amazonS3Client.getUrl(bucket,gltfFileName).toString();
+
+                    Files.delete(Path.of(filename));
+                    Files.delete(Path.of(gltfFileName));
+                    return ResponseEntity.ok().body(Map.of("url", gltfUrl));
                 } catch (Exception e){
                     log.error("[3D-rendering] fail to upload on S3");
                     e.printStackTrace();
