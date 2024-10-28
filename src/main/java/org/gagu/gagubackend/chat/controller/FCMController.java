@@ -20,8 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class FCMController {
     private final ChatService chatService;
-    private final JwtTokenProvider jwtTokenProvider;
-    @Operation(summary = "채팅 알림 전송", description = "채팅 전송 시 상대방 단말기에 푸쉬 알림을 전송합니다.")
+    @Operation(summary = "채팅 알림 전송 테스트", description = "푸쉬 알림 테스트 용 입니다.")
     @PostMapping("/notification")
     public ResponseEntity<?> pushMessage(@RequestBody RequestFCMSendDto requestFCMSendDto){
         log.info("[CHATTING-NOTIFICATION] send push message");

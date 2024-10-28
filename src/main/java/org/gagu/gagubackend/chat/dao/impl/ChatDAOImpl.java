@@ -1,13 +1,18 @@
 package org.gagu.gagubackend.chat.dao.impl;
 
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.gagu.gagubackend.chat.config.FCMConfig;
 import org.gagu.gagubackend.chat.dao.ChatDAO;
 import org.gagu.gagubackend.chat.domain.ChatContents;
 import org.gagu.gagubackend.chat.domain.ChatRoom;
 import org.gagu.gagubackend.chat.domain.ChatRoomMember;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
+import org.gagu.gagubackend.chat.dto.request.RequestFCMSendDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatContentsDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseMyChatRoomsDto;
@@ -20,6 +25,7 @@ import org.gagu.gagubackend.global.exception.NotMemberException;
 import org.gagu.gagubackend.auth.domain.User;
 import org.gagu.gagubackend.auth.dto.request.RequestUserInfoDto;
 import org.gagu.gagubackend.auth.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +46,7 @@ public class ChatDAOImpl implements ChatDAO {
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatContentsRepository chatContentsRepository;
+    private final FirebaseMessaging firebaseMessaging;
 
     @Override
     public ResponseEntity<?> createChatRoom(RequestUserInfoDto userInfoDto, RequestCreateChatRoomDto requestCreateChatRoomDto) {
@@ -143,8 +150,25 @@ public class ChatDAOImpl implements ChatDAO {
 
     @Override
     public ResponseChatDto saveMessage(RequestChatContentsDto requestChatContentsDto, Long roomId, String nickname) {
-
         User user = userRepository.findByNickName(nickname);
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).get();
+
+        List<ChatRoomMember> chatRoomMemberList = chatRoomMemberRepository.findAllByRoomId(chatRoom);
+
+        chatRoomMemberList.stream().map(v ->{
+            User tmp = v.getMember();
+            if(!tmp.equals(user)){
+                String receiveMember = tmp.getNickName();
+
+                RequestFCMSendDto dto = RequestFCMSendDto.builder()
+                        .senderNickname(receiveMember)
+                        .body(requestChatContentsDto.getContents())
+                        .build();
+
+                sendMessageTo(dto);
+            }
+            return null;
+        });
 
         // 저장되는 채팅 내역
         ChatContents chatContents = ChatContents.builder()
@@ -228,8 +252,34 @@ public class ChatDAOImpl implements ChatDAO {
             log.error("[chat] not found user");
             throw new NotMemberException();
         }
+    }
 
+    private void sendMessageTo(RequestFCMSendDto requestFCMSendDto) {
+        log.info("[CHATTING-NOTIFICATION] send to {}", requestFCMSendDto.getSenderNickname());
+
+        User user = userRepository.findByNickName(requestFCMSendDto.getSenderNickname());
+        String fcmToken = user.getFCMToken();
+
+        log.info("[CHATTING-NOTIFICATION] fcm token : {}", fcmToken);
+
+        try {
+            Notification notification = Notification.builder()
+                    .setTitle("GAGU")
+                    .setBody(requestFCMSendDto.getBody())
+                    .build();
+
+            Message message = Message.builder()
+                    .setToken(user.getFCMToken())
+                    .setNotification(notification)
+                    .build();
+
+            firebaseMessaging.send(message);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error("[CHATTING-NOTIFICATION] fail to send notification!");
         }
+    }
 
 
     private boolean checkUserExist(String userEmail, String userNickname){
