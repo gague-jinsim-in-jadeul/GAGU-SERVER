@@ -85,30 +85,39 @@ public class ImageController {
             if(response.getStatusCode() == HttpStatus.OK){ // 정상 응답 시
 
                 log.info("[3D-rendering] rendering success!");
-                String filename = "3d-rendering" + System.currentTimeMillis() + ".glb";
+                String glbFileName = "3d-rendering" + System.currentTimeMillis() + ".glb";
 
-                Files.write(Path.of(filename), response.getBody()); // 파일 임시 저장
-                Scene scene = Scene.fromFile(filename);
+                Files.write(Path.of(glbFileName), response.getBody()); // 파일 임시 저장
+                Scene scene = Scene.fromFile(glbFileName);
 
-                String gltfFileName = filename.replace(".glb", ".gltf");
+                String gltfFileName = glbFileName.replace(".glb", ".gltf");
 
                 GltfSaveOptions opt = new GltfSaveOptions(FileContentType.ASCII);
                 opt.setEmbedAssets(true);
 
                 scene.save(gltfFileName, opt);
 
-                ObjectMetadata data = new ObjectMetadata();
-                data.setContentType("model/gltf-binary"); // 파일 타입
-                data.setContentLength(new File(gltfFileName).length()); // 파일 사이즈
                 try{
+                    ObjectMetadata data = new ObjectMetadata();
+                    data.setContentType("model/gltf-binary"); // 파일 타입
+                    data.setContentLength(response.getBody().length); // 파일 사이즈
+                    log.info("[3D-rendering] try to upload glb on S3");
+                    amazonS3Client.putObject(bucket, glbFileName, new ByteArrayInputStream(response.getBody()), data);
+                    log.info("[3D-rendering] successfully upload glb to S3!");
+                    String glbUrl = amazonS3Client.getUrl(bucket, glbFileName).toString();
+
+                    data = new ObjectMetadata();
+                    data.setContentType("model/gltf-binary"); // 파일 타입
+                    data.setContentLength(new File(gltfFileName).length()); // 파일 사이즈
+
                     log.info("[3D-rendering] try to upload on S3");
                     amazonS3Client.putObject(bucket, gltfFileName, new FileInputStream(gltfFileName), data);
                     log.info("[3D-rendering] successfully upload to S3!");
                     String gltfUrl = amazonS3Client.getUrl(bucket,gltfFileName).toString();
 
-                    Files.delete(Path.of(filename));
+                    Files.delete(Path.of(glbFileName));
                     Files.delete(Path.of(gltfFileName));
-                    return ResponseEntity.ok().body(Map.of("url", gltfUrl));
+                    return ResponseEntity.ok().body(Map.of("gltfUrl", gltfUrl,"glbUrl",glbUrl));
                 } catch (Exception e){
                     log.error("[3D-rendering] fail to upload on S3");
                     e.printStackTrace();

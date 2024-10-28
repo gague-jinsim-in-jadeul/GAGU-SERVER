@@ -15,10 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.chat.config.FCMConfig;
 import org.gagu.gagubackend.chat.dao.ChatDAO;
 import org.gagu.gagubackend.chat.domain.ChatContents;
-import org.gagu.gagubackend.chat.dto.request.EstimateChatContentsDto;
-import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
-import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
-import org.gagu.gagubackend.chat.dto.request.RequestFCMSendDto;
+import org.gagu.gagubackend.chat.dto.request.*;
 import org.gagu.gagubackend.chat.dto.response.*;
 import org.gagu.gagubackend.chat.service.ChatService;
 import org.gagu.gagubackend.estimate.dao.EstimateDAO;
@@ -150,10 +147,9 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public ResponseEntity<?> sendMessageTo(RequestFCMSendDto requestFCMSendDto) {
-        log.info("[CHATTING-NOTIFICATION] send to {}", requestFCMSendDto.getSenderNickname());
+    public ResponseEntity<?> sendMessageTo(ReqeustDto dto) {
 
-        User user = userRepository.findByNickName(requestFCMSendDto.getSenderNickname());
+        User user = userRepository.findByNickName(dto.getNickname());
         String fcmToken = user.getFCMToken();
 
         log.info("[CHATTING-NOTIFICATION] fcm token : {}", fcmToken);
@@ -161,7 +157,7 @@ public class ChatServiceImpl implements ChatService {
         try {
             Notification notification = Notification.builder()
                     .setTitle("GAGU")
-                    .setBody(requestFCMSendDto.getBody())
+                    .setBody(dto.getBody())
                     .build();
 
             Message message = Message.builder()

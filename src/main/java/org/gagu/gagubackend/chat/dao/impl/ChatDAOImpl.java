@@ -158,14 +158,17 @@ public class ChatDAOImpl implements ChatDAO {
         chatRoomMemberList.stream().map(v ->{
             User tmp = v.getMember();
             if(!tmp.equals(user)){
-                String receiveMember = tmp.getNickName();
-
                 RequestFCMSendDto dto = RequestFCMSendDto.builder()
-                        .senderNickname(receiveMember)
+                        .senderNickname(tmp)
                         .body(requestChatContentsDto.getContents())
                         .build();
+                try{
+                    sendMessageTo(dto);
+                }catch (Exception e){
+                    e.printStackTrace();
+                    log.error("[chat] fail to send notification!");
+                }
 
-                sendMessageTo(dto);
             }
             return null;
         });
@@ -257,7 +260,7 @@ public class ChatDAOImpl implements ChatDAO {
     private void sendMessageTo(RequestFCMSendDto requestFCMSendDto) {
         log.info("[CHATTING-NOTIFICATION] send to {}", requestFCMSendDto.getSenderNickname());
 
-        User user = userRepository.findByNickName(requestFCMSendDto.getSenderNickname());
+        User user = requestFCMSendDto.getSenderNickname();
         String fcmToken = user.getFCMToken();
 
         log.info("[CHATTING-NOTIFICATION] fcm token : {}", fcmToken);
