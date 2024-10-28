@@ -1,6 +1,7 @@
 package org.gagu.gagubackend.chat.dto.request;
 
 import lombok.*;
+import org.gagu.gagubackend.auth.domain.User;
 
 
 /**
@@ -16,6 +17,6 @@ import lombok.*;
 @ToString
 @Builder
 public class RequestFCMSendDto {
-    private String senderNickname;
+    private User senderNickname;
     private String body;
 }
