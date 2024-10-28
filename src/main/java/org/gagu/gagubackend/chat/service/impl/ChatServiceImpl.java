@@ -160,12 +160,12 @@ public class ChatServiceImpl implements ChatService {
 
         try {
             Notification notification = Notification.builder()
-                    .setTitle(requestFCMSendDto.getTitle())
+                    .setTitle("GAGU")
                     .setBody(requestFCMSendDto.getBody())
                     .build();
 
             Message message = Message.builder()
-                    .setToken(fcmToken)
+                    .setToken(user.getFCMToken())
                     .setNotification(notification)
                     .build();
 

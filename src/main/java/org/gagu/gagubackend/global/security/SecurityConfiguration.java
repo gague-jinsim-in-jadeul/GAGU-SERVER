@@ -63,7 +63,8 @@ public class SecurityConfiguration {
                                 "/chat/**",
                                 "/chat-2d/**",
                                 "/api/v1/auth/log-out",
-                                "/api/v1/auth/profile-upload").permitAll() // 채팅
+                                "/api/v1/auth/profile-upload",
+                                "/api/v1/fcm/**").permitAll() // 채팅
                         .requestMatchers(PATTERNS).permitAll()
 
                         .requestMatchers("/api/v1/**",

@@ -17,6 +17,5 @@ import lombok.*;
 @Builder
 public class RequestFCMSendDto {
     private String senderNickname;
-    private String title;
     private String body;
 }
