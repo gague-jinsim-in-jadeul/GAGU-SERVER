@@ -77,6 +77,7 @@ public class AuthController {
     @Operation(summary = "카카오 소셜 로그인 컨트롤러 입니다.")
     @PostMapping("/kakao/sign")
     public ResponseEntity<?> kaKaoSign(@RequestBody RequestOauthSignDto requestOauthSignDto){
+        log.info("[kakao login] dto : {}", requestOauthSignDto);
         String type = "kakao";
         return authService.normalSignIn(requestOauthSignDto, type);
     }

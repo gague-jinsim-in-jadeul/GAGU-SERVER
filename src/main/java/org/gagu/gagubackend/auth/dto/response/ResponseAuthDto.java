@@ -13,5 +13,6 @@ public class ResponseAuthDto {
     private String accessToken;
     private String nickname;
     private String name;
+    private String resourceId;
     private CommonResponse<?> status;
 }

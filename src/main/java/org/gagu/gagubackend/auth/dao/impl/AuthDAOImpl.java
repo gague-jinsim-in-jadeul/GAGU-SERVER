@@ -140,6 +140,8 @@ public class AuthDAOImpl implements AuthDAO {
                         user.setEmail(requestSaveUserDto.getEmail());
                     }
 
+                    user.setResourceId(requestSaveUserDto.getResourceId());
+
                     String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName());
 
                     redisConfig.redisTemplate().opsForValue().set(user.getNickName(),
@@ -160,6 +162,7 @@ public class AuthDAOImpl implements AuthDAO {
                             .body(ResponseAuthDto.builder()
                                     .accessToken(jwtTokenProvider.createAccessToken(user.getEmail(), user.getNickName(), user.getRoles()))
                                     .nickname(user.getNickName())
+                                    .resourceId(user.getResourceId())
                                     .name(user.getName())
                                     .status(CommonResponse.success())
                                     .build());
@@ -208,6 +211,7 @@ public class AuthDAOImpl implements AuthDAO {
                                     .accessToken(jwtTokenProvider.createAccessToken(user.getEmail(), user.getNickName(), user.getRoles()))
                                     .nickname(user.getNickName())
                                     .name(user.getName())
+                                    .resourceId(user.getResourceId())
                                     .status(CommonResponse.success())
                                     .build());
                 }
