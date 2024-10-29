@@ -24,12 +24,12 @@ public abstract class BaseTimeEntity {
 
     @PrePersist
     public void onPrePersist() {
-        this.createdDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+        this.createdDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd a HH시 mm분 ss초"));
         this.modifiedDate = this.createdDate;
     }
 
     @PreUpdate
     public void onPreUpdate() {
-        this.modifiedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+        this.modifiedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd a HH시 mm분 ss초"));
     }
 }

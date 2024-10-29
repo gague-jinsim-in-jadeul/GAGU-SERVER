@@ -175,7 +175,7 @@ public class ChatDAOImpl implements ChatDAO {
 
         // 저장되는 채팅 내역
         ChatContents chatContents = ChatContents.builder()
-                .sendTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .sendTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd a HH시 mm분 ss초")))
                 .sender(user)
                 .message(requestChatContentsDto.getContents())
                 .chatRoomId(roomId)
