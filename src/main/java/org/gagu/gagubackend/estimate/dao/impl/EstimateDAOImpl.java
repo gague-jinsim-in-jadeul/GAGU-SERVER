@@ -43,7 +43,7 @@ public class EstimateDAOImpl implements EstimateDAO {
                 .furniture2DUrl(requestSaveFurnitureDto.getFurniture2DUrl())
                 .furnitureGlbUrl(requestSaveFurnitureDto.getFurnitureGlbUrl())
                 .furnitureGltfUrl(requestSaveFurnitureDto.getFurnitureGltfUrl())
-                .createdTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .createdTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd a HH시 mm분 ss초")))
                 .build();
         try{
             estimateRepository.save(estimate);
