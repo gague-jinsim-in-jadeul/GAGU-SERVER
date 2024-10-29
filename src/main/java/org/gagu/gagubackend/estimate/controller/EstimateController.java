@@ -72,7 +72,8 @@ public class EstimateController {
     private boolean isAnyFieldNull(RequestSaveFurnitureDto dto){
         return Stream.of(dto.getFurnitureName(),
                 dto.getFurniture2DUrl(),
-                dto.getFurniture3DUrl())
+                dto.getFurnitureGlbUrl(),
+                dto.getFurnitureGltfUrl())
                 .anyMatch(Objects::isNull);
     }
 }

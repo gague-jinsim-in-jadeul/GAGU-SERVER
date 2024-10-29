@@ -11,5 +11,6 @@ import lombok.*;
 public class RequestSaveFurnitureDto {
     private String furnitureName;
     private String furniture2DUrl;
-    private String furniture3DUrl;
+    private String furnitureGlbUrl;
+    private String furnitureGltfUrl;
 }

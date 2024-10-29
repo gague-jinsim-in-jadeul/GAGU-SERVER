@@ -41,7 +41,8 @@ public class EstimateDAOImpl implements EstimateDAO {
                 .nickName(user)
                 .furnitureName(requestSaveFurnitureDto.getFurnitureName())
                 .furniture2DUrl(requestSaveFurnitureDto.getFurniture2DUrl())
-                .furniture3DUrl(requestSaveFurnitureDto.getFurniture3DUrl())
+                .furnitureGlbUrl(requestSaveFurnitureDto.getFurnitureGlbUrl())
+                .furnitureGltfUrl(requestSaveFurnitureDto.getFurnitureGltfUrl())
                 .createdTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .build();
         try{
@@ -67,7 +68,8 @@ public class EstimateDAOImpl implements EstimateDAO {
                         ResponseMyFurnitureDto dto = new ResponseMyFurnitureDto();
                         dto.setId(estimate.getId());
                         dto.setFurniture2DUrl(estimate.getFurniture2DUrl());
-                        dto.setFurniture3DUrl(estimate.getFurniture3DUrl());
+                        dto.setFurnitureGlbUrl(estimate.getFurnitureGlbUrl());
+                        dto.setFurnitureGltfUrl(estimate.getFurnitureGltfUrl());
                         dto.setFurnitureName(estimate.getFurnitureName());
                         dto.setCreatedDate(estimate.getCreatedTime());
                         return dto;
@@ -118,7 +120,7 @@ public class EstimateDAOImpl implements EstimateDAO {
         ResponseCompleteEstimate responseCompleteEstimate = new ResponseCompleteEstimate();
         responseCompleteEstimate.setId(estimate.getId());
         responseCompleteEstimate.setFurnitureName(estimate.getFurnitureName());
-        responseCompleteEstimate.setFurniture3DUrl(estimate.getFurniture3DUrl());
+        responseCompleteEstimate.setFurniture3DUrl(estimate.getFurnitureGltfUrl());
         responseCompleteEstimate.setCreatedDate(estimate.getCreatedTime());
         responseCompleteEstimate.setPrice(estimateChatContentsDto.getPrice());
         return responseCompleteEstimate;

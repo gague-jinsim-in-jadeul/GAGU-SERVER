@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.gagu.gagubackend.auth.domain.User;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table
 @Getter
@@ -26,7 +24,10 @@ public class Estimate {
     private String furniture2DUrl; // 2D URL
 
     @Column(nullable = false)
-    private String furniture3DUrl; // 3D OBJ URL
+    private String furnitureGlbUrl; // 3D GLB URL
+
+    @Column(nullable = false)
+    private String furnitureGltfUrl; // 3D GLTF URL
 
     @Column(nullable = false)
     private String createdTime; // 생성 시간
