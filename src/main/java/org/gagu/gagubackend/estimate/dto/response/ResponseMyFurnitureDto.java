@@ -12,7 +12,7 @@ public class ResponseMyFurnitureDto {
     private Long id;
     private String furnitureName;
     private String furniture2DUrl;
-    private String furniture3DUrl;
-    private String furniture3DMtl;
+    private String furnitureGlbUrl;
+    private String furnitureGltfUrl;
     private String createdDate;
 }
