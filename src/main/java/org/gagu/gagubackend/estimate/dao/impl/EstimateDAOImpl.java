@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.domain.User;
 import org.gagu.gagubackend.auth.repository.UserRepository;
+import org.gagu.gagubackend.chat.dao.ChatDAO;
 import org.gagu.gagubackend.chat.dto.request.EstimateChatContentsDto;
+import org.gagu.gagubackend.chat.dto.request.RequestFCMSendDto;
 import org.gagu.gagubackend.estimate.dao.EstimateDAO;
 import org.gagu.gagubackend.estimate.domain.Estimate;
 import org.gagu.gagubackend.estimate.dto.request.RequestSaveFurnitureDto;
@@ -18,12 +20,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Component
@@ -32,6 +30,7 @@ import java.util.stream.Collectors;
 public class EstimateDAOImpl implements EstimateDAO {
     private final EstimateRepository estimateRepository;
     private final UserRepository userRepository;
+    private final ChatDAO chatDAO;
     @Override
     public ResponseEntity<?> saveFurniture(RequestSaveFurnitureDto requestSaveFurnitureDto, String nickname) {
 
@@ -43,7 +42,6 @@ public class EstimateDAOImpl implements EstimateDAO {
                 .furniture2DUrl(requestSaveFurnitureDto.getFurniture2DUrl())
                 .furnitureGlbUrl(requestSaveFurnitureDto.getFurnitureGlbUrl())
                 .furnitureGltfUrl(requestSaveFurnitureDto.getFurnitureGltfUrl())
-                .createdTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd a HH시 mm분 ss초")))
                 .build();
         try{
             estimateRepository.save(estimate);
@@ -71,11 +69,47 @@ public class EstimateDAOImpl implements EstimateDAO {
                         dto.setFurnitureGlbUrl(estimate.getFurnitureGlbUrl());
                         dto.setFurnitureGltfUrl(estimate.getFurnitureGltfUrl());
                         dto.setFurnitureName(estimate.getFurnitureName());
-                        dto.setCreatedDate(estimate.getCreatedTime());
+                        dto.setCreatedDate(estimate.getCreatedDate());
                         return dto;
                     }).collect(Collectors.toList());
 
             return new PageImpl<>(responseMyFurnitureDtos, pageable, estimates.getTotalElements());
+        }catch (Exception e){
+            log.error("[GET-MY-FURNITURE] fail to collect my furnitures");
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Page<ResponseCompleteEstimate> getMyEstimates(String nickname, Pageable pageable) {
+        try{
+            log.info("[GET-MY-FURNITURE] collecting my furnitures...");
+            User user = userRepository.findByNickName(nickname);
+            Page<Estimate> estimates = estimateRepository.findByNickName(user, pageable);
+
+            AtomicInteger cnt  = new AtomicInteger();
+            List<ResponseCompleteEstimate> estimatesDto = estimates.stream()
+                    .map(estimate -> {
+
+                        ResponseCompleteEstimate dto = new ResponseCompleteEstimate();
+                        if(estimate.getDescription() != null && estimate.getPrice() != null){
+                            cnt.getAndIncrement();
+                            dto.setId(estimate.getId());
+                            dto.setFurniture2DUrl(estimate.getFurniture2DUrl());
+                            dto.setFurnitureGlbUrl(estimate.getFurnitureGlbUrl());
+                            dto.setFurnitureGltfUrl(estimate.getFurnitureGltfUrl());
+                            dto.setFurnitureName(estimate.getFurnitureName());
+                            dto.setPrice(estimate.getPrice());
+                            dto.setDescription(estimate.getDescription());
+                            dto.setCreatedDate(estimate.getCreatedDate());
+                            return dto;
+                        }
+                        return null;
+                    }).collect(Collectors.toList());
+
+            return new PageImpl<>(estimatesDto, pageable, estimatesDto.size());
         }catch (Exception e){
             log.error("[GET-MY-FURNITURE] fail to collect my furnitures");
             e.printStackTrace();
@@ -101,7 +135,7 @@ public class EstimateDAOImpl implements EstimateDAO {
     }
 
     @Override
-    public ResponseCompleteEstimate completeEstimate(EstimateChatContentsDto estimateChatContentsDto, String nickname) {
+    public ResponseEntity<?> completeEstimate(EstimateChatContentsDto estimateChatContentsDto, String nickname) {
         log.info("[FINAL-ESTIMATE] updating estimate...");
         Estimate estimate = estimateRepository.findById(estimateChatContentsDto.getId()).get();
         if(estimate ==null){
@@ -114,15 +148,20 @@ public class EstimateDAOImpl implements EstimateDAO {
 
             estimateRepository.save(estimate);
             log.info("[FINAL-ESTIMATE] save estimate successfully!");
+            RequestFCMSendDto fcmSendDto = RequestFCMSendDto.builder()
+                    .body("새로운 견적서가 발행됐습니다! 앱에서 확인해주세요!")
+                    .senderNickname(estimate.getNickName())
+                    .build();
+
+            chatDAO.sendMessageTo(fcmSendDto);
+            log.info("[FINAL-ESTIMATE] send push notification successfully!");
+            return ResultCode.OK.toResponseEntity();
+
         }catch (Exception e){
+            e.printStackTrace();
             log.error("[FINAL-ESTIMATE] fail to save estimate!");
+            return ResultCode.FAIL.toResponseEntity();
         }
-        ResponseCompleteEstimate responseCompleteEstimate = new ResponseCompleteEstimate();
-        responseCompleteEstimate.setId(estimate.getId());
-        responseCompleteEstimate.setFurnitureName(estimate.getFurnitureName());
-        responseCompleteEstimate.setFurniture3DUrl(estimate.getFurnitureGltfUrl());
-        responseCompleteEstimate.setCreatedDate(estimate.getCreatedTime());
-        responseCompleteEstimate.setPrice(estimateChatContentsDto.getPrice());
-        return responseCompleteEstimate;
+
     }
 }

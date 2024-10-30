@@ -1,6 +1,8 @@
 package org.gagu.gagubackend.estimate.service;
 
+import org.gagu.gagubackend.chat.dto.request.EstimateChatContentsDto;
 import org.gagu.gagubackend.estimate.dto.request.RequestSaveFurnitureDto;
+import org.gagu.gagubackend.estimate.dto.response.ResponseCompleteEstimate;
 import org.gagu.gagubackend.estimate.dto.response.ResponseMyFurnitureDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,4 +30,20 @@ public interface EstimateService {
      * @return
      */
     ResponseEntity<?> deleteFurniture(Long id);
+
+    /**
+     * 공방관계자가 견적서를 작성합니다.
+     * @param dto
+     * @param nickname
+     * @return
+     */
+    ResponseEntity<?> saveEstimate(EstimateChatContentsDto dto, String nickname);
+
+    /**
+     * 공방관계자가 작성한 견적서를 반환합니다.
+     * @param nickname
+     * @param pageable
+     * @return
+     */
+    Page<ResponseCompleteEstimate> getEstimate(String nickname, Pageable pageable);
 }

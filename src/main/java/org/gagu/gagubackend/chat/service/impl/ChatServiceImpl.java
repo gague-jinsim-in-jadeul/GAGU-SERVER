@@ -71,9 +71,6 @@ public class ChatServiceImpl implements ChatService {
         switch (messageType){
             case "SEND":
                 return chatDAO.saveMessage(message,roomNumber,nickname);
-            case "ESTIMATE":
-                EstimateChatContentsDto estimateChatContentsDto = (EstimateChatContentsDto) message;
-                return estimateDAO.completeEstimate(estimateChatContentsDto, nickname);
         }
         return null;
     }

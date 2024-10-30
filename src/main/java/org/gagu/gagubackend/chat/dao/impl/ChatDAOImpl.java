@@ -151,30 +151,7 @@ public class ChatDAOImpl implements ChatDAO {
     @Override
     public ResponseChatDto saveMessage(RequestChatContentsDto requestChatContentsDto, Long roomId, String nickname) {
         User user = userRepository.findByNickName(nickname);
-        ChatRoom chatRoom = chatRoomRepository.findById(roomId).get();
-
-        List<ChatRoomMember> chatRoomMemberList = chatRoomMemberRepository.findAllByRoomId(chatRoom);
-
-        for (ChatRoomMember u : chatRoomMemberList){
-            User findUser = u.getMember();
-            if(!findUser.equals(user)){
-                String receiver = findUser.getNickName();
-                log.info("[chat] notify to {}",receiver);
-
-                RequestFCMSendDto dto = RequestFCMSendDto.builder()
-                        .senderNickname(findUser)
-                        .body(requestChatContentsDto.getContents())
-                        .build();
-                try{
-                    sendMessageTo(dto);
-                    break;
-                }catch (Exception e){
-                    e.printStackTrace();
-                    log.error("[chat] fail to send notification!");
-                }
-
-            }
-        }
+        log.info("[chat] sender : {}", user.getNickName());
 
         // 저장되는 채팅 내역
         ChatContents chatContents = ChatContents.builder()
@@ -259,9 +236,9 @@ public class ChatDAOImpl implements ChatDAO {
             throw new NotMemberException();
         }
     }
-
-    private void sendMessageTo(RequestFCMSendDto requestFCMSendDto) {
-        log.info("[CHATTING-NOTIFICATION] send to {}", requestFCMSendDto.getSenderNickname());
+    @Override
+    public void sendMessageTo(RequestFCMSendDto requestFCMSendDto) {
+        log.info("[CHATTING-NOTIFICATION] send to {}", requestFCMSendDto.getSenderNickname().getNickName());
 
         User user = requestFCMSendDto.getSenderNickname();
         String fcmToken = user.getFCMToken();
@@ -275,7 +252,7 @@ public class ChatDAOImpl implements ChatDAO {
                     .build();
 
             Message message = Message.builder()
-                    .setToken(user.getFCMToken())
+                    .setToken(fcmToken)
                     .setNotification(notification)
                     .build();
 
@@ -295,9 +272,6 @@ public class ChatDAOImpl implements ChatDAO {
     private boolean checkWorkshopExist(String workShopName){
         log.info("[chat] check workshop exist");
         return userRepository.existsByNickName(workShopName);
-    }
-    private boolean checkChatRoomExist(ChatRoom chatroom){
-        return chatRoomMemberRepository.existsChatRoomMemberByRoomId(chatroom);
     }
     private String createChatRoomName(String buyerName, String sellerName){
         return buyerName + "님과 " + sellerName + "과의 채팅방";
