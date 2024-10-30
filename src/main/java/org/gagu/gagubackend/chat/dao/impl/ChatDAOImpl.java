@@ -65,7 +65,7 @@ public class ChatDAOImpl implements ChatDAO {
                 log.warn("[chat] chatroom is already exist!");
                 Optional<ChatRoomMember> chatRoomMember = chatRoomMemberRepository.findChatRoomMemberByMembers(buyer, workshop);
                 Long roomId = chatRoomMember.get().getRoomId().getId();
-                return ResponseEntity.status(ResultCode.DUPLICATE_CHATROOM.getCode()).body(roomId);
+                return ResponseEntity.status(ResultCode.OK.getCode()).body(roomId);
             }
 
             String chatRoomName = createChatRoomName(buyer.getName(), workShopName);
@@ -155,23 +155,26 @@ public class ChatDAOImpl implements ChatDAO {
 
         List<ChatRoomMember> chatRoomMemberList = chatRoomMemberRepository.findAllByRoomId(chatRoom);
 
-        chatRoomMemberList.stream().map(v ->{
-            User tmp = v.getMember();
-            if(!tmp.equals(user)){
+        for (ChatRoomMember u : chatRoomMemberList){
+            User findUser = u.getMember();
+            if(!findUser.equals(user)){
+                String receiver = findUser.getNickName();
+                log.info("[chat] notify to {}",receiver);
+
                 RequestFCMSendDto dto = RequestFCMSendDto.builder()
-                        .senderNickname(tmp)
+                        .senderNickname(findUser)
                         .body(requestChatContentsDto.getContents())
                         .build();
                 try{
                     sendMessageTo(dto);
+                    break;
                 }catch (Exception e){
                     e.printStackTrace();
                     log.error("[chat] fail to send notification!");
                 }
 
             }
-            return null;
-        });
+        }
 
         // 저장되는 채팅 내역
         ChatContents chatContents = ChatContents.builder()
@@ -267,7 +270,7 @@ public class ChatDAOImpl implements ChatDAO {
 
         try {
             Notification notification = Notification.builder()
-                    .setTitle("GAGU")
+                    .setTitle("GAGU 채팅 알림")
                     .setBody(requestFCMSendDto.getBody())
                     .build();
 
