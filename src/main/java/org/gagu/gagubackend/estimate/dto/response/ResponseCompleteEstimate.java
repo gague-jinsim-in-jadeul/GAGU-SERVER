@@ -15,7 +15,6 @@ public class ResponseCompleteEstimate {
     private String furniture2DUrl;
     private String furnitureGlbUrl;
     private String furnitureGltfUrl;
-    private String furniture3DUrl;
     private String createdDate;
     private String price;
     private String description;
