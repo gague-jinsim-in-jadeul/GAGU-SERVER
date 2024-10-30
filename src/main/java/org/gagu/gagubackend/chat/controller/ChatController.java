@@ -134,7 +134,7 @@ public class ChatController {
                 }
                 log.info("[chat] complete check member");
                 Thread.sleep(1000); // 비동기적으로 메시지를 처리하기 위해서 1초 지연(옵션)
-                log.info("[chat] question : {}", message.getContents());
+                log.info("[chat] message : {}", message.getContents());
                 ResponseChatDto responseChatDto = chatService.sendContents(message,roomNumber,nickname);
                 template.convertAndSend("/sub/chatroom/"+roomNumber,responseChatDto); // 구독하고 있는 채팅방에 전송
             }else{
