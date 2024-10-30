@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.gagu.gagubackend.chat.dto.request.EstimateChatContentsDto;
 import org.gagu.gagubackend.estimate.dto.request.RequestSaveFurnitureDto;
 import org.gagu.gagubackend.estimate.service.EstimateService;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
@@ -50,8 +51,35 @@ public class EstimateController {
         String nickname = jwtTokenProvider.getUserNickName(token);
         log.info("[GET-FURNITURE] get {}'s 2D, 3D furniture", nickname);
 
-        Pageable pageable = PageRequest.of(page,4, Sort.Direction.DESC,"createdTime");
+        Pageable pageable = PageRequest.of(page,4, Sort.Direction.DESC,"createdDate");
         return ResponseEntity.ok(estimateService.getFurniture(nickname,pageable));
+    }
+
+    @Operation(summary = "견적서 작성", description = "공방관계자가 사용자가 제작을 희망하는 가구의 가격과 의견을 작성합니다.")
+    @PostMapping("/save")
+    public ResponseEntity<?> saveEstimate(HttpServletRequest request, @RequestBody EstimateChatContentsDto dto){
+        if(dto.getId() == null){
+            return ResultCode.FAIL.toResponseEntity();
+        } else if (dto.getPrice() == null) {
+            return ResultCode.FAIL.toResponseEntity();
+        } else if (dto.getDescription() == null) {
+            return ResultCode.FAIL.toResponseEntity();
+        }else{
+            String token = jwtTokenProvider.extractToken(request);
+            String nickName = jwtTokenProvider.getUserNickName(token);
+
+            return estimateService.saveEstimate(dto, nickName);
+        }
+    }
+
+    @Operation(summary = "견적서 반환", description = "견적서가 발행된 저장된 가구들이 반환됩니다.")
+    @GetMapping("/estimates")
+    public ResponseEntity<?> getEstimates(HttpServletRequest request, @RequestParam(defaultValue = "0") int page){
+        String token = jwtTokenProvider.extractToken(request);
+        String nickname = jwtTokenProvider.getUserNickName(token);
+
+        Pageable pageable = PageRequest.of(page,4, Sort.Direction.DESC,"modifiedDate");
+        return ResponseEntity.ok(estimateService.getEstimate(nickname,pageable));
     }
 
     @Operation(summary = "저장한 가구 삭제", description = "사용자가 저장한 2D, 3D 이미지를 삭제합니다.")

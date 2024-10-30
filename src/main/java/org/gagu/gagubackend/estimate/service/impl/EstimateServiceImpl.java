@@ -2,8 +2,10 @@ package org.gagu.gagubackend.estimate.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.gagu.gagubackend.chat.dto.request.EstimateChatContentsDto;
 import org.gagu.gagubackend.estimate.dao.EstimateDAO;
 import org.gagu.gagubackend.estimate.dto.request.RequestSaveFurnitureDto;
+import org.gagu.gagubackend.estimate.dto.response.ResponseCompleteEstimate;
 import org.gagu.gagubackend.estimate.dto.response.ResponseMyFurnitureDto;
 import org.gagu.gagubackend.estimate.service.EstimateService;
 import org.springframework.data.domain.Page;
@@ -27,7 +29,17 @@ public class EstimateServiceImpl implements EstimateService {
     }
 
     @Override
+    public Page<ResponseCompleteEstimate> getEstimate(String nickname, Pageable pageable) {
+        return estimateDAO.getMyEstimates(nickname, pageable);
+    }
+
+    @Override
     public ResponseEntity<?> deleteFurniture(Long id) {
         return estimateDAO.deleteFurniture(id);
+    }
+
+    @Override
+    public ResponseEntity<?> saveEstimate(EstimateChatContentsDto dto, String nickname) {
+        return estimateDAO.completeEstimate(dto, nickname);
     }
 }

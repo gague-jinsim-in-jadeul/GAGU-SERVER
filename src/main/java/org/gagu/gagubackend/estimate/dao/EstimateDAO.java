@@ -16,7 +16,22 @@ public interface EstimateDAO {
      * @return
      */
     ResponseEntity<?> saveFurniture(RequestSaveFurnitureDto requestSaveFurnitureDto, String nickname);
+
+    /**
+     * 저장한 가구 이미지 반환
+     * @param nickname
+     * @param pageable
+     * @return
+     */
     Page<ResponseMyFurnitureDto> getMyFurniture(String nickname, Pageable pageable);
+
+    /**
+     * 저장한 견적서 반환
+     * @param nickname
+     * @param pageable
+     * @return
+     */
+    Page<ResponseCompleteEstimate> getMyEstimates(String nickname, Pageable pageable);
     ResponseEntity<?> deleteFurniture(Long id);
-    ResponseCompleteEstimate completeEstimate(EstimateChatContentsDto estimateChatContentsDto, String nickname);
+    ResponseEntity<?> completeEstimate(EstimateChatContentsDto estimateChatContentsDto, String nickname);
 }

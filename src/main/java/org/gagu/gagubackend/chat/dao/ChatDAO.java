@@ -3,6 +3,7 @@ package org.gagu.gagubackend.chat.dao;
 import org.gagu.gagubackend.chat.domain.ChatContents;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
+import org.gagu.gagubackend.chat.dto.request.RequestFCMSendDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatContentsDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseMyChatRoomsDto;
@@ -52,5 +53,11 @@ public interface ChatDAO {
      * @return
      */
     Page<ResponseMyChatRoomsDto> getMyRooms(String nickname, Pageable pageable);
+
+    /**
+     * 알림 푸쉬 전송
+     * @param requestFCMSendDto
+     */
+    void sendMessageTo(RequestFCMSendDto requestFCMSendDto);
 
 }

@@ -3,6 +3,7 @@ package org.gagu.gagubackend.estimate.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.gagu.gagubackend.auth.domain.User;
+import org.gagu.gagubackend.global.domain.BaseTimeEntity;
 
 @Entity
 @Table
@@ -12,7 +13,7 @@ import org.gagu.gagubackend.auth.domain.User;
 @AllArgsConstructor
 @ToString
 @Builder
-public class Estimate {
+public class Estimate extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,9 +29,6 @@ public class Estimate {
 
     @Column(nullable = false)
     private String furnitureGltfUrl; // 3D GLTF URL
-
-    @Column(nullable = false)
-    private String createdTime; // 생성 시간
 
     @Column(nullable = true)
     private String price;
