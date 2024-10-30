@@ -6,12 +6,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.chat.domain.ChatRoom;
+import org.gagu.gagubackend.chat.domain.ChatRoomMember;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
 import org.gagu.gagubackend.chat.repository.ChatRoomMemberRepository;
 import org.gagu.gagubackend.chat.repository.ChatRoomRepository;
 import org.gagu.gagubackend.chat.service.ChatService;
+import org.gagu.gagubackend.estimate.domain.Estimate;
+import org.gagu.gagubackend.estimate.repository.EstimateRepository;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
 import org.gagu.gagubackend.global.exception.ChatRoomNotFoundException;
 import org.gagu.gagubackend.global.exception.NotFoundUserException;
@@ -30,6 +33,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/chat")
@@ -42,6 +46,7 @@ public class ChatController {
     private final UserRepository userRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
+    private final EstimateRepository estimateRepository;
 
     @Operation(summary = "결제 전 채팅방을 새로 생성합니다.", security = @SecurityRequirement(name="JWT"))
     @PostMapping("/new")
@@ -111,6 +116,8 @@ public class ChatController {
 
         log.info("[chat] room id : {}",roomNumber);
 
+
+
         String nickname = (String) accessor.getSessionAttributes().get("senderNickname");
         log.info("[chat] check memeber....");
         if (nickname == null) {
@@ -126,6 +133,31 @@ public class ChatController {
                 throw new NotFoundUserException();
             }
             Optional<ChatRoom> foundChatRoomList = chatRoomRepository.findById(roomNumber);
+            String workshop = (String) accessor.getSessionAttributes().get("workshop");
+
+            if(workshop == null){
+                log.info("[socket] first chatting with workshop: {}", workshop);
+                ChatRoom chatRoom = foundChatRoomList.get();
+                List<ChatRoomMember> list = chatRoomMemberRepository.findAllByRoomId(chatRoom);
+                for(ChatRoomMember e : list){
+                    if(e.getMember().getRoles().get(0).equals("ROLE_WORKSHOP")) {
+                        log.info("[socket] workshop is : {}", e.getMember().getNickName());
+                        List<Estimate> estimates = estimateRepository.findAllByNickName(user);
+                        log.info("[socket] esitmate : {}", estimates.toString());
+                        log.info("[socket] collect estimates success!");
+
+                        for (Estimate tmp : estimates) {
+                            if ((tmp.getPrice() == null) && (tmp.getDescription() == null)) {
+                                tmp.setMakerName(e.getMember().getNickName());
+                                estimateRepository.save(tmp);
+                                log.info("[socket] update estimates success!");
+                                accessor.getSessionAttributes().putIfAbsent("workshop", e.getMember().getNickName());
+                                }
+                            }
+                       }
+                    }
+                }
+
             if(!foundChatRoomList.isEmpty()){
                 ChatRoom chatRoom = foundChatRoomList.get();
                 if(checkMember(chatRoom, user)){ // 채팅방 권한이 있다면

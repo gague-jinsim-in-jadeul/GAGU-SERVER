@@ -119,6 +119,29 @@ public class EstimateDAOImpl implements EstimateDAO {
     }
 
     @Override
+    public Page<ResponseMyFurnitureDto> getRequestFurnitures(Pageable pageable, String nickname, String requester) {
+        User user = userRepository.findByNickName(requester);
+        Page<Estimate> estimatePage = estimateRepository.findByNickNameAndMakerName(user, nickname, pageable);
+        log.info("[request furniture] collect estimate success!");
+
+        List<ResponseMyFurnitureDto> estimatesDto = estimatePage.stream().map(v ->{
+            ResponseMyFurnitureDto dto = new ResponseMyFurnitureDto();
+
+            if(v.getPrice() == null && v.getDescription() == null){
+                dto.setId(v.getId());
+                dto.setFurnitureName(v.getFurnitureName());
+                dto.setFurniture2DUrl(v.getFurniture2DUrl());
+                dto.setFurnitureGlbUrl(v.getFurnitureGlbUrl());
+                dto.setFurnitureGltfUrl(v.getFurnitureGltfUrl());
+                dto.setCreatedDate(v.getCreatedDate());
+                return dto;
+            }
+            return null;
+        }).collect(Collectors.toList());
+        return new PageImpl<>(estimatesDto, pageable, estimatesDto.size());
+    }
+
+    @Override
     public ResponseEntity<?> deleteFurniture(Long id) {
         try{
             Estimate estimate = estimateRepository.findById(id).get();

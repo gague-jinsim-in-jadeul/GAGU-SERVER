@@ -59,7 +59,8 @@ public class SecurityConfiguration {
                                 "/api/v1/chat/**",
                                 "/api/v1/fcm/**").hasAnyRole("USER","WORKSHOP") // 프로필 업로드
 
-                        .requestMatchers("/api/v1/estimate/save").hasRole("WORKSHOP")
+                        .requestMatchers("/api/v1/estimate/save",
+                                "/api/v1/estimate/workshop/**").hasRole("WORKSHOP")
 
                         .requestMatchers("/api/v1/auth/**",
                                 "/chat/**",

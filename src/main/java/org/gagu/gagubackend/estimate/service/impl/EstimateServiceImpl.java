@@ -34,6 +34,11 @@ public class EstimateServiceImpl implements EstimateService {
     }
 
     @Override
+    public Page<ResponseMyFurnitureDto> getRequestFurnitures(Pageable pageable, String nickname, String requester) {
+        return estimateDAO.getRequestFurnitures(pageable,nickname,requester);
+    }
+
+    @Override
     public ResponseEntity<?> deleteFurniture(Long id) {
         return estimateDAO.deleteFurniture(id);
     }

@@ -46,4 +46,12 @@ public interface EstimateService {
      * @return
      */
     Page<ResponseCompleteEstimate> getEstimate(String nickname, Pageable pageable);
+
+    /**
+     * 공방관계자가 의뢰된 가구 이미지를 조회합니다.
+     * @param nickname
+     * @param pageable
+     * @return
+     */
+    Page<ResponseMyFurnitureDto> getRequestFurnitures(Pageable pageable,String nickname,String requester);
 }
