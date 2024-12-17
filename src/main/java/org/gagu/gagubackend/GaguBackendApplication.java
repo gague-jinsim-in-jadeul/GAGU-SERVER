@@ -8,10 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-@OpenAPIDefinition(
-        servers = {
-                @Server(url = "/", description = "Default Server url")
-        }
+@OpenAPIDefinition(servers = {@Server(url = "https://gagu.me", description = "Default Server url")}
 )
 @SpringBootApplication
 @EnableJpaAuditing
