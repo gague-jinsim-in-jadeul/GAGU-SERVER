@@ -101,6 +101,8 @@ public class EstimateController {
 
         return ResponseEntity.ok(estimateService.getRequestFurnitures(pageable, nickname, requester));
     }
+    @Operation(summary = "결제 내역 조회", description = "사용자 결제 이후 결재 내역을 PG 사를 통해 확인합니다.")
+    
 
     /**
      * RequestSaveFurnitureDto null 확인 메서드
