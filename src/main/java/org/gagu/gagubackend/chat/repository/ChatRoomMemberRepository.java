@@ -3,6 +3,7 @@ package org.gagu.gagubackend.chat.repository;
 import org.gagu.gagubackend.chat.domain.ChatRoom;
 import org.gagu.gagubackend.chat.domain.ChatRoomMember;
 import org.gagu.gagubackend.auth.domain.User;
+import org.gagu.gagubackend.chat.repository.custom.ChatRoomMemberRepositoryCustom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, Long> {
+public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, Long>, ChatRoomMemberRepositoryCustom {
     boolean existsChatRoomMemberByRoomId(ChatRoom chatRoom);
     List<ChatRoomMember> findAllByRoomId(ChatRoom chatRoom);
     List<ChatRoomMember> findAllByMember(User user);

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.dao.AuthDAO;
+import org.gagu.gagubackend.auth.domain.User;
 import org.gagu.gagubackend.auth.dto.request.*;
 import org.gagu.gagubackend.auth.service.AuthService;
 import org.gagu.gagubackend.global.domain.CommonResponse;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -255,6 +257,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseEntity<?> getWorkShopDetails(Long id) {
         return authDAO.getWorkShopDetails(id);
+    }
+
+    @Override
+    public boolean checkUserExistByNickname(String nickname) {
+        Optional<User> userOptional = authDAO.getUserByNickname(nickname);
+        return userOptional.isPresent();
     }
 
     private RequestSaveUserDto getKakaoUserInfo(String accessToken){

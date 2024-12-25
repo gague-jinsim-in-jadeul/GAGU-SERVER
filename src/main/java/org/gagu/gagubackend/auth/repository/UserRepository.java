@@ -1,11 +1,12 @@
 package org.gagu.gagubackend.auth.repository;
 
 import org.gagu.gagubackend.auth.domain.User;
+import org.gagu.gagubackend.auth.repository.custom.UserRepositoryCustom;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface UserRepository extends JpaRepository<User,Long> {
+public interface UserRepository extends JpaRepository<User,Long>, UserRepositoryCustom {
     User findByEmailAndLoginType(String name, String loginType);
     User findByResourceIdAndLoginType(String resourceId, String loginType);
     List<User> findAllByEmailAndLoginType(String email, String loginType);

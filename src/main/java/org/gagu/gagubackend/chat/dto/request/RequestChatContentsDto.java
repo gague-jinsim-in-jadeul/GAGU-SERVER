@@ -4,12 +4,28 @@ import lombok.*;
 import org.gagu.gagubackend.global.domain.enums.MessageType;
 
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @ToString
+@AllArgsConstructor
 @Builder
 public class RequestChatContentsDto {
     private MessageType type;
-    private String contents;
+    private String prompt;
+    private EstimateInfo estimateInfo;
+    private ChatContentsInfo chatContentsInfo;
+
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class EstimateInfo{
+        private String template;
+        private Long estimateId;
+        public EstimateInfo(){}
+    }
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class ChatContentsInfo{
+        private String contents;
+        public ChatContentsInfo(){}
+    }
 }

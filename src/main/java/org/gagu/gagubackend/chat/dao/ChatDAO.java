@@ -1,6 +1,8 @@
 package org.gagu.gagubackend.chat.dao;
 
 import org.gagu.gagubackend.chat.domain.ChatContents;
+import org.gagu.gagubackend.chat.domain.ChatRoom;
+import org.gagu.gagubackend.chat.domain.ChatRoomMember;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
 import org.gagu.gagubackend.chat.dto.request.RequestCreateChatRoomDto;
 import org.gagu.gagubackend.chat.dto.request.RequestFCMSendDto;
@@ -11,6 +13,8 @@ import org.gagu.gagubackend.auth.dto.request.RequestUserInfoDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+
+import java.util.Optional;
 
 public interface ChatDAO {
     /**
@@ -60,4 +64,34 @@ public interface ChatDAO {
      */
     void sendMessageTo(RequestFCMSendDto requestFCMSendDto);
 
+    /**
+     * 채팅방 조회
+     * @param id
+     * @return
+     */
+    Optional<ChatRoom> getChatRoomByRoomId(Long id);
+
+    /**
+     * 채팅방 권한 확인
+     * @param nickname
+     * @param id
+     * @return
+     */
+    Optional<ChatRoomMember> getChatRoomMember(String nickname, Long id);
+
+    /**
+     * 사용자가 견적 요청
+     * @param message
+     * @param nickname
+     * @return
+     */
+    ResponseChatDto askEstimate(RequestChatContentsDto message, String nickname);
+
+    /**
+     * 견적서 완료
+     * @param message
+     * @param nickname
+     * @return
+     */
+    ResponseChatDto completeEstimate(RequestChatContentsDto message, String nickname);
 }

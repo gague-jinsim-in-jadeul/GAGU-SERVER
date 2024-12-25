@@ -19,12 +19,15 @@ import org.gagu.gagubackend.chat.dto.response.ResponseMyChatRoomsDto;
 import org.gagu.gagubackend.chat.repository.ChatContentsRepository;
 import org.gagu.gagubackend.chat.repository.ChatRoomMemberRepository;
 import org.gagu.gagubackend.chat.repository.ChatRoomRepository;
+import org.gagu.gagubackend.estimate.domain.Estimate;
+import org.gagu.gagubackend.estimate.repository.EstimateRepository;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
 import org.gagu.gagubackend.global.exception.ChatRoomNotFoundException;
 import org.gagu.gagubackend.global.exception.NotMemberException;
 import org.gagu.gagubackend.auth.domain.User;
 import org.gagu.gagubackend.auth.dto.request.RequestUserInfoDto;
 import org.gagu.gagubackend.auth.repository.UserRepository;
+import org.gagu.gagubackend.global.service.TimeService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -46,7 +49,9 @@ public class ChatDAOImpl implements ChatDAO {
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatContentsRepository chatContentsRepository;
+    private final EstimateRepository estimateRepository;
     private final FirebaseMessaging firebaseMessaging;
+    private final TimeService timeService;
 
     @Override
     public ResponseEntity<?> createChatRoom(RequestUserInfoDto userInfoDto, RequestCreateChatRoomDto requestCreateChatRoomDto) {
@@ -155,9 +160,9 @@ public class ChatDAOImpl implements ChatDAO {
 
         // 저장되는 채팅 내역
         ChatContents chatContents = ChatContents.builder()
-                .sendTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd a HH시 mm분 ss초")))
+                .sendTime(timeService.makeTimeTemplate())
                 .sender(user)
-                .message(requestChatContentsDto.getContents())
+                .message(requestChatContentsDto.getChatContentsInfo().getContents())
                 .chatRoomId(roomId)
                 .build();
 
@@ -261,6 +266,48 @@ public class ChatDAOImpl implements ChatDAO {
         }catch (Exception e){
             e.printStackTrace();
             log.error("[CHATTING-NOTIFICATION] fail to send notification!");
+        }
+    }
+
+    @Override
+    public Optional<ChatRoom> getChatRoomByRoomId(Long id) {
+        return chatRoomRepository.findChatRoomByRoomId(id);
+    }
+
+    @Override
+    public Optional<ChatRoomMember> getChatRoomMember(String nickname, Long id) {
+        return chatRoomMemberRepository.getChatRoomMemberByRoomIdAndUser(id, nickname);
+    }
+
+    @Override
+    public ResponseChatDto askEstimate(RequestChatContentsDto message, String nickname) {
+        RequestChatContentsDto.EstimateInfo estimateInfo = message.getEstimateInfo();
+
+        return ResponseChatDto.builder()
+                .contents(estimateInfo.getTemplate())
+                .nickName(nickname)
+                .time(timeService.makeTimeTemplate())
+                .build();
+    }
+
+    @Override
+    public ResponseChatDto completeEstimate(RequestChatContentsDto message, String nickname) {
+        RequestChatContentsDto.EstimateInfo estimateInfo = message.getEstimateInfo();
+        Optional<Estimate> estimateOptional = estimateRepository.findEstimateById(estimateInfo.getEstimateId());
+
+        if(estimateOptional.isPresent()){
+            Estimate estimate = estimateOptional.get();
+            estimate.setMakerName(nickname);
+
+            estimateRepository.save(estimate);
+            return ResponseChatDto.builder()
+                    .contents(estimateInfo.getTemplate())
+                    .nickName(nickname)
+                    .time(timeService.makeTimeTemplate())
+                    .build();
+        }else{
+            log.error("[CHAT-DAO-IMPL] fail to get estimate info!");
+            throw new NullPointerException();
         }
     }
 
