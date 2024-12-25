@@ -65,4 +65,19 @@ public interface ChatService {
     ResponseImageDto generate2D(RequestChatContentsDto message) throws JsonProcessingException;
 
     ResponseEntity<?> sendMessageTo(ReqeustDto dto);
+
+    /**
+     * 범용적으로 사용하는 채팅방 조회
+     * @param id
+     * @return
+     */
+    boolean checkChatRoomExistByRoomId(Long id);
+
+    /**
+     * 채팅방 권한 확인
+     * @param nickname
+     * @param id
+     * @return
+     */
+    boolean checkChatRoomMemberAuthorization(String nickname, Long id);
 }
