@@ -1,10 +1,13 @@
 package org.gagu.gagubackend.auth.dao;
 
+import org.gagu.gagubackend.auth.domain.User;
 import org.gagu.gagubackend.auth.dto.request.RequestAddressDto;
 import org.gagu.gagubackend.auth.dto.request.RequestChangeUserInfoDto;
 import org.gagu.gagubackend.auth.dto.request.RequestGeneralSignDto;
 import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
 import org.springframework.http.ResponseEntity;
+
+import java.util.Optional;
 
 public interface AuthDAO {
     /**
@@ -68,4 +71,11 @@ public interface AuthDAO {
      * @return
      */
     ResponseEntity<?> getWorkShopDetails(Long id);
+
+    /**
+     * 범용적으로 사용하는 닉네임으로 유저 조회
+     * @param nickname
+     * @return
+     */
+    Optional<User> getUserByNickname(String nickname);
 }

@@ -4,17 +4,15 @@ package org.gagu.gagubackend.chat.service.impl;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.gagu.gagubackend.chat.config.FCMConfig;
 import org.gagu.gagubackend.chat.dao.ChatDAO;
-import org.gagu.gagubackend.chat.domain.ChatContents;
+import org.gagu.gagubackend.chat.domain.ChatRoom;
+import org.gagu.gagubackend.chat.domain.ChatRoomMember;
 import org.gagu.gagubackend.chat.dto.request.*;
 import org.gagu.gagubackend.chat.dto.response.*;
 import org.gagu.gagubackend.chat.service.ChatService;
@@ -27,25 +25,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
     private final ChatDAO chatDAO;
-    private final EstimateDAO estimateDAO;
     private final AmazonS3Client amazonS3Client;
     private final UserRepository userRepository;
     private final FirebaseMessaging firebaseMessaging;
@@ -71,8 +63,12 @@ public class ChatServiceImpl implements ChatService {
         switch (messageType){
             case "SEND":
                 return chatDAO.saveMessage(message,roomNumber,nickname);
+            case "REQUEST_ESTIMATE":
+                return chatDAO.askEstimate(message,nickname);
+            case "RESPONSE_ESTIMATE":
+                return chatDAO.completeEstimate(message,nickname);
         }
-        return null;
+        throw new RuntimeException();
     }
 
     @Override
@@ -93,8 +89,8 @@ public class ChatServiceImpl implements ChatService {
             case "LLM":
                 Map<String, String> requestBody = new HashMap<>();
                 ObjectMapper objectMapper = new ObjectMapper();
-                requestBody.put("prompt", message.getContents());
-                log.info("[2D-LLM] prompt : {}", message.getContents());
+                requestBody.put("prompt", message.getPrompt());
+                log.info("[2D-LLM] prompt : {}", message.getPrompt());
 
                 RestTemplate restTemplate = new RestTemplate();
                 HttpHeaders header = new HttpHeaders();
@@ -170,5 +166,17 @@ public class ChatServiceImpl implements ChatService {
             log.error("[CHATTING-NOTIFICATION] fail to send notification!");
             return ResultCode.FAIL.toResponseEntity();
         }
+    }
+
+    @Override
+    public boolean checkChatRoomExistByRoomId(Long id) {
+        Optional<ChatRoom> chatRoomOptional = chatDAO.getChatRoomByRoomId(id);
+        return chatRoomOptional.isPresent();
+    }
+
+    @Override
+    public boolean checkChatRoomMemberAuthorization(String nickname, Long id) {
+        Optional<ChatRoomMember> chatRoomMemberOptional = chatDAO.getChatRoomMember(nickname, id);
+        return chatRoomMemberOptional.isPresent();
     }
 }

@@ -79,4 +79,6 @@ public interface AuthService {
      * @return
      */
     ResponseEntity<?> getWorkShopDetails(Long id);
+
+    boolean checkUserExistByNickname(String nickname);
 }

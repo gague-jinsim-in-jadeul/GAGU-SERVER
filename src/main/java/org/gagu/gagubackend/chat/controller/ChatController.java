@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.gagu.gagubackend.auth.service.AuthService;
 import org.gagu.gagubackend.chat.domain.ChatRoom;
 import org.gagu.gagubackend.chat.domain.ChatRoomMember;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
@@ -18,6 +19,7 @@ import org.gagu.gagubackend.estimate.repository.EstimateRepository;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
 import org.gagu.gagubackend.global.exception.ChatRoomNotFoundException;
 import org.gagu.gagubackend.global.exception.NotFoundUserException;
+import org.gagu.gagubackend.global.exception.NotMemberException;
 import org.gagu.gagubackend.global.security.JwtTokenProvider;
 import org.gagu.gagubackend.auth.domain.User;
 import org.gagu.gagubackend.auth.dto.request.RequestUserInfoDto;
@@ -43,10 +45,9 @@ public class ChatController {
     private final JwtTokenProvider jwtTokenProvider;
     private final ChatService chatService;
     private final SimpMessagingTemplate template;
-    private final UserRepository userRepository;
+    private final AuthService authService;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
-    private final EstimateRepository estimateRepository;
 
     @Operation(summary = "결제 전 채팅방을 새로 생성합니다.", security = @SecurityRequirement(name="JWT"))
     @PostMapping("/new")
@@ -116,72 +117,39 @@ public class ChatController {
 
         log.info("[chat] room id : {}",roomNumber);
 
-
-
         String nickname = (String) accessor.getSessionAttributes().get("senderNickname");
-        log.info("[chat] check memeber....");
+        log.info("[chat] checking memeber....");
+
         if (nickname == null) {
+            log.error("[chat] session storage is empty!");
             throw new IllegalArgumentException("세션에 닉네임이 없습니다.");
         }
 
         Long sessionRoomId = (Long) accessor.getSessionAttributes().get("chatRoomId");
 
-        if(sessionRoomId==null){ // 처음 메세지 보내는 경우
-            log.info("[chat] chatting session is empty room id : {}, nickname : {}", roomNumber,nickname);
-            User user = userRepository.findByNickName(nickname);
-            if(user == null){
+        if(sessionRoomId == null){ // 처음 메세지 보내는 경우
+            log.info("[chat] chatting session is empty. room id : {}, nickname : {}", roomNumber,nickname);
+
+            /**
+             * 사용자 유무, 채팅방 유무, 채팅방 권한 유무 확인
+             */
+            if(!authService.checkUserExistByNickname(nickname)){
                 throw new NotFoundUserException();
             }
-            Optional<ChatRoom> foundChatRoomList = chatRoomRepository.findById(roomNumber);
-            String workshop = (String) accessor.getSessionAttributes().get("workshop");
-
-            if(workshop == null){
-                log.info("[socket] first chatting with workshop: {}", workshop);
-                ChatRoom chatRoom = foundChatRoomList.get();
-                List<ChatRoomMember> list = chatRoomMemberRepository.findAllByRoomId(chatRoom);
-                for(ChatRoomMember e : list){
-                    if(e.getMember().getRoles().get(0).equals("ROLE_WORKSHOP")) {
-                        log.info("[socket] workshop is : {}", e.getMember().getNickName());
-                        List<Estimate> estimates = estimateRepository.findAllByNickName(user);
-                        log.info("[socket] esitmate : {}", estimates.toString());
-                        log.info("[socket] collect estimates success!");
-
-                        for (Estimate tmp : estimates) {
-                            if ((tmp.getPrice() == null) && (tmp.getDescription() == null)) {
-                                tmp.setMakerName(e.getMember().getNickName());
-                                estimateRepository.save(tmp);
-                                log.info("[socket] update estimates success!");
-                                accessor.getSessionAttributes().putIfAbsent("workshop", e.getMember().getNickName());
-                                }
-                            }
-                       }
-                    }
-                }
-
-            if(!foundChatRoomList.isEmpty()){
-                ChatRoom chatRoom = foundChatRoomList.get();
-                if(checkMember(chatRoom, user)){ // 채팅방 권한이 있다면
-                    accessor.getSessionAttributes().putIfAbsent("chatRoomId", roomNumber);// 세션에 저장되어 있지 않을때, 세션에 저장
-                    log.info("[chat] successfully put room id to session");
-                }
-                log.info("[chat] complete check member");
-                Thread.sleep(1000); // 비동기적으로 메시지를 처리하기 위해서 1초 지연(옵션)
-                log.info("[chat] message : {}", message.getContents());
-                ResponseChatDto responseChatDto = chatService.sendContents(message,roomNumber,nickname);
-                template.convertAndSend("/sub/chatroom/"+roomNumber,responseChatDto); // 구독하고 있는 채팅방에 전송
-            }else{
+            if(!chatService.checkChatRoomExistByRoomId(roomNumber)){
                 throw new ChatRoomNotFoundException();
             }
-        }else{
+            if(!chatService.checkChatRoomMemberAuthorization(nickname,roomNumber)){
+                throw new NotMemberException();
+            }
+
+            // 세션에 저장되어 있지 않을때, 세션에 저장
+            accessor.getSessionAttributes().putIfAbsent("chatRoomId", roomNumber);
+            log.info("[chat] successfully put room id to session");
             log.info("[chat] complete check member");
+        }
             Thread.sleep(1000); // 비동기적으로 메시지를 처리하기 위해서 1초 지연(옵션)
-            log.info("[chat] question : {}", message.getContents());
             ResponseChatDto responseChatDto = chatService.sendContents(message,roomNumber,nickname);
             template.convertAndSend("/sub/chatroom/"+roomNumber,responseChatDto); // 구독하고 있는 채팅방에 전송
-        }
-    }
-
-    private boolean checkMember(ChatRoom roomId, User member){
-        return chatRoomMemberRepository.existsChatRoomMemberByRoomIdAndMember(roomId,member);
     }
 }

@@ -35,6 +35,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -437,6 +438,11 @@ public class AuthDAOImpl implements AuthDAO {
             log.info("[WORKSHOP-DETAILS] found workshop successfully!");
             return ResponseEntity.ok(dto);
         }
+    }
+
+    @Override
+    public Optional<User> getUserByNickname(String nickname) {
+        return userRepository.findUserByNickname(nickname);
     }
 
     private void updateUserNickName(String nickname, String changeNickname){

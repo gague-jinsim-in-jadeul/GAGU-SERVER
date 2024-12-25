@@ -7,12 +7,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.chat.dto.request.RequestChatContentsDto;
-import org.gagu.gagubackend.chat.dto.response.Response3DDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseImageDto;
 import org.gagu.gagubackend.chat.service.ChatService;
-import org.gagu.gagubackend.global.config.RedisConfig;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
-import org.gagu.gagubackend.global.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
@@ -135,7 +132,7 @@ public class ImageController {
     @MessageMapping("/gagu-chat/2d") // mapping ex)/pub/gagu-chat/2d
     public void chattingWith2D(RequestChatContentsDto message,
                                SimpMessageHeaderAccessor accessor) throws Exception {
-        log.info("[2D-chat] send prompt : {}", message.getContents());
+//        log.info("[2D-chat] send prompt : {}", message.getContents());
         Thread.sleep(1000); // 비동기적으로 메시지를 처리하기 위해서 1초 지연(옵션)
         String nickname = (String) accessor.getSessionAttributes().get("senderNickname");
         ResponseImageDto responseChatDto = chatService.generate2D(message);
