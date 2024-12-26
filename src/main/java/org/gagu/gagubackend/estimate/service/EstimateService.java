@@ -43,15 +43,14 @@ public interface EstimateService {
      * 공방관계자가 작성한 견적서를 반환합니다.
      * @param nickname
      * @param pageable
-     * @return
+     * @return paging
      */
     Page<ResponseCompleteEstimate> getEstimate(String nickname, Pageable pageable);
 
     /**
-     * 공방관계자가 의뢰된 가구 이미지를 조회합니다.
-     * @param nickname
-     * @param pageable
-     * @return
+     *
+     * @param id
+     * @return Estimate
      */
-    Page<ResponseMyFurnitureDto> getRequestFurnitures(Pageable pageable,String nickname,String requester);
+    ResponseEntity<?> getRequestFurniture(Long id);
 }

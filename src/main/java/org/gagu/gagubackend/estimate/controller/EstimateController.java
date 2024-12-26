@@ -91,17 +91,11 @@ public class EstimateController {
         }
         return estimateService.deleteFurniture(id);
     }
-    @Operation(summary = "의뢰된 가구 이미지 조회", description = "사용자가 가구 제작 후 의뢰한 가구 이미지를 공방관계자가 조회합니다.")
-    @GetMapping("/workshop/{requester}")
-    public ResponseEntity<?> getRequestFurnitures(HttpServletRequest request, @RequestParam(defaultValue = "0") int page, @PathVariable String requester){
-        String token = jwtTokenProvider.extractToken(request);
-        String nickname = jwtTokenProvider.getUserNickName(token);
-
-        Pageable pageable = PageRequest.of(page,4, Sort.Direction.DESC,"modifiedDate");
-
-        return ResponseEntity.ok(estimateService.getRequestFurnitures(pageable, nickname, requester));
+    @Operation(summary = "의뢰된 가구 이미지 조회", description = "사용자가 가구 제작 후 의뢰한 가구 이미지를 조회합니다.")
+    @GetMapping("/details")
+    public ResponseEntity<?> getRequestFurniture(@RequestParam Long id){
+        return ResponseEntity.ok(estimateService.getRequestFurniture(id));
     }
-    @Operation(summary = "결제 내역 조회", description = "사용자 결제 이후 결재 내역을 PG 사를 통해 확인합니다.")
     
 
     /**

@@ -34,13 +34,11 @@ public interface EstimateDAO {
     Page<ResponseCompleteEstimate> getMyEstimates(String nickname, Pageable pageable);
 
     /**
-     * 공방관계자가 의뢰된 가구 이미지 조회
-     * @param pageable
-     * @param nickname
-     * @param requester
+     * 저장한 견적서 조회 id 값으로
+     * @param id
      * @return
      */
-    Page<ResponseMyFurnitureDto> getRequestFurnitures(Pageable pageable, String nickname, String requester);
+    ResponseEntity<?> getRequestFurniture(Long id);
     ResponseEntity<?> deleteFurniture(Long id);
     ResponseEntity<?> completeEstimate(EstimateChatContentsDto estimateChatContentsDto, String nickname);
 }

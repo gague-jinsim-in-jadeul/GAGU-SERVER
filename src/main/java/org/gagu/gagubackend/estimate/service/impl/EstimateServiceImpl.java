@@ -34,8 +34,8 @@ public class EstimateServiceImpl implements EstimateService {
     }
 
     @Override
-    public Page<ResponseMyFurnitureDto> getRequestFurnitures(Pageable pageable, String nickname, String requester) {
-        return estimateDAO.getRequestFurnitures(pageable,nickname,requester);
+    public ResponseEntity<?> getRequestFurniture(Long id) {
+        return estimateDAO.getRequestFurniture(id);
     }
 
     @Override
