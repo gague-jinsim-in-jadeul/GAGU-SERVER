@@ -62,7 +62,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/profile/**",
                                 "/api/v1/user-info/reset",
                                 "/api/v1/chat/**",
-                                "/api/v1/fcm/**").hasAnyRole("USER","WORKSHOP") // 프로필 업로드
+                                "/api/v1/fcm/**").hasAnyRole("USER","WORKSHOP")
 
                         .requestMatchers("/api/v1/estimate/save",
                                 "/api/v1/estimate/workshop/**").hasRole("WORKSHOP")
@@ -71,6 +71,7 @@ public class SecurityConfiguration {
                                 "/chat/**",
                                 "/chat-2d/**",
                                 "/api/v1/auth/log-out",
+                                "/api/v1/estimate/details",
                                 "/api/v1/auth/profile-upload",
                                 "/api/v1/fcm/**").permitAll() // 채팅
                         .requestMatchers(PATTERNS).permitAll()
