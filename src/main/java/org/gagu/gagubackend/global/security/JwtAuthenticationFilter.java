@@ -5,10 +5,11 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.global.config.RedisConfig;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -17,40 +18,33 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisConfig redisConfig;
+    private final List<String> passUrl;
 
-    private final List<String> passUrl = List.of(
-            "/api/v1/auth/google/callback",
-            "/api/v1/auth/kakao/callback",
-            "/api/v1/auth/google/sign",
-            "/api/v1/auth/kakao/sign",
-            "/api/v1/auth/profile-upload",
-            "/api/v1/auth/general/sign-up",
-            "/api/v1/auth/general/sign-in",
-            "/api/v1/auth/authorize",
-            "/api/v1/auth/send-one",
-            "/v3/api-docs/**",
-            "/swagger-ui/**",
-            "/swagger-resources/**",
-            "/css/**",
-            "/images/**",
-            "/js/**",
-            "/favicon.ico",
-            "/chat/**",
-            "/chat-2d/**"
-    );
+    @Autowired
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, RedisConfig redisConfig, @Value("${security.pass.url}") String urlList) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.redisConfig = redisConfig;
+        this.passUrl = Arrays.stream(urlList.split(","))
+                .map(String::trim) // 공백 제거
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        log.info("[JwtAuthentication Filter] should not filter url : {}", request.getServletPath());
+
         boolean result = passUrl.stream().anyMatch(url -> new AntPathMatcher().match(url, request.getServletPath()));
-        log.info("[JwtAuthentication Filter] should not filter url : {} no filter : {}",request.getServletPath(), result);
+        log.info("[JwtAuthentication Filter] should not filter url : {} no filter : {}", request.getServletPath(), result);
         return result;
     }
     @Override
