@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -63,14 +64,8 @@ public class EstimateDAOImpl implements EstimateDAO {
 
             List<ResponseMyFurnitureDto> responseMyFurnitureDtos = estimates.stream()
                     .map(estimate -> {
-                        ResponseMyFurnitureDto dto = new ResponseMyFurnitureDto();
-                        dto.setId(estimate.getId());
-                        dto.setFurniture2DUrl(estimate.getFurniture2DUrl());
-                        dto.setFurnitureGlbUrl(estimate.getFurnitureGlbUrl());
-                        dto.setFurnitureGltfUrl(estimate.getFurnitureGltfUrl());
-                        dto.setFurnitureName(estimate.getFurnitureName());
-                        dto.setCreatedDate(estimate.getCreatedDate());
-                        return dto;
+                        return new ResponseMyFurnitureDto().entityMapper(estimate);
+
                     }).collect(Collectors.toList());
 
             return new PageImpl<>(responseMyFurnitureDtos, pageable, estimates.getTotalElements());
@@ -119,26 +114,17 @@ public class EstimateDAOImpl implements EstimateDAO {
     }
 
     @Override
-    public Page<ResponseMyFurnitureDto> getRequestFurnitures(Pageable pageable, String nickname, String requester) {
-        User user = userRepository.findByNickName(requester);
-        Page<Estimate> estimatePage = estimateRepository.findByNickNameAndMakerName(user, nickname, pageable);
+    public ResponseEntity<?> getRequestFurniture(Long id) {
+        Optional<Estimate> estimateOptional = estimateRepository.findEstimateById(id);
         log.info("[request furniture] collect estimate success!");
 
-        List<ResponseMyFurnitureDto> estimatesDto = estimatePage.stream().map(v ->{
-            ResponseMyFurnitureDto dto = new ResponseMyFurnitureDto();
-
-            if(v.getPrice() == null && v.getDescription() == null){
-                dto.setId(v.getId());
-                dto.setFurnitureName(v.getFurnitureName());
-                dto.setFurniture2DUrl(v.getFurniture2DUrl());
-                dto.setFurnitureGlbUrl(v.getFurnitureGlbUrl());
-                dto.setFurnitureGltfUrl(v.getFurnitureGltfUrl());
-                dto.setCreatedDate(v.getCreatedDate());
-                return dto;
-            }
-            return null;
-        }).collect(Collectors.toList());
-        return new PageImpl<>(estimatesDto, pageable, estimatesDto.size());
+        if(estimateOptional.isPresent()){
+            Estimate estimate = estimateOptional.get();
+            ResponseMyFurnitureDto dto = new ResponseMyFurnitureDto().entityMapper(estimate);
+            return ResponseEntity.ok().body(dto);
+        }else{
+            return ResultCode.FAIL.toResponseEntity();
+        }
     }
 
     @Override
