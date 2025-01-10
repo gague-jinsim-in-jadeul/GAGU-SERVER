@@ -15,6 +15,7 @@ public enum ResultCode {
     DUPLICATE_USER(400,"이미 계정이 존재합니다"),
     DUPLICATE_CHATROOM(400,"이미 채팅방이 존재합니다."),
     NOT_IN_STORAGE(404, "스토리지에 저장되어 있지 않습니다."),
+    TOO_LONG_FILENAME(400, "파일명이 너무 깁니다. 다른 이름으로 변경해주세요. (영어 파일명을 추천드립니다)"),
     BAD_REQUEST(400, "요청값이 잘못 됐습니다."),
     TOKEN_IS_NULL(400, "토큰 값이 누락됐습니다."),
     NO_AUTHORIZE_NUMBER(400, "인증번호가 누락됐습니다."),

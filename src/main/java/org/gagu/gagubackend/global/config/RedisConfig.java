@@ -2,6 +2,7 @@ package org.gagu.gagubackend.global.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.gagu.gagubackend.global.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,11 +12,15 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
 @RequiredArgsConstructor
 @Configuration
 @EnableRedisRepositories
 @Slf4j
 public class RedisConfig {
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Value("${spring.redis.host}")
     private String host;
@@ -36,5 +41,13 @@ public class RedisConfig {
         redisTemplate.setValueSerializer(new StringRedisSerializer());
         redisTemplate.setConnectionFactory(redisConnectionFactory());
         return redisTemplate;
+    }
+
+    public void putRefreshToken(String nickname, String refreshToken){
+        Date expireTime = jwtTokenProvider.getExpireTime(refreshToken);
+        redisTemplate().opsForValue().set(nickname,
+                refreshToken,
+                expireTime.getTime() - System.currentTimeMillis(),
+                TimeUnit.MILLISECONDS);
     }
 }

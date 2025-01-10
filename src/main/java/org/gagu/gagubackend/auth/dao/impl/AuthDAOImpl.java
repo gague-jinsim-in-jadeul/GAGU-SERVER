@@ -18,8 +18,6 @@ import org.gagu.gagubackend.chat.repository.ChatRoomRepository;
 import org.gagu.gagubackend.estimate.domain.Estimate;
 import org.gagu.gagubackend.estimate.repository.EstimateRepository;
 import org.gagu.gagubackend.global.config.RedisConfig;
-import org.gagu.gagubackend.global.domain.CommonResponse;
-import org.gagu.gagubackend.global.domain.enums.LoginType;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
 import org.gagu.gagubackend.global.security.JwtTokenProvider;
 import org.gagu.gagubackend.auth.domain.User;
@@ -27,13 +25,10 @@ import org.gagu.gagubackend.auth.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -57,319 +52,262 @@ public class AuthDAOImpl implements AuthDAO {
     private String googleLoginLogo;
     @Value("${login.type.general.logo}")
     private String generalLoginLogo;
+
     @Override
     public ResponseEntity<?> generalLogin(RequestSaveUserDto requestSaveUserDto) {
-        if (requestSaveUserDto.getLoginType().equals(LoginType.GENERAL.toString())) { // 공방관계자 회원가입 일 경우
-            if (checkWorkshopExist(requestSaveUserDto.getNickName(), requestSaveUserDto.getLoginType())) { // 이미 공방관계자 계정이 있는 경우
-                log.info("[auth] user is exist! user : {}", requestSaveUserDto.getNickName());
+        String logIntType = requestSaveUserDto.getLoginType();
+        String email = requestSaveUserDto.getEmail();
+        String nickName = requestSaveUserDto.getNickName();
 
-                User user = userRepository.findByNickName(requestSaveUserDto.getNickName()); // 공방 관계자
-                if (user.isEnabled()) {
-                    log.error("[auth] nick name is duplicated!");
-                    return ResultCode.DUPLICATE_NICKNAME.toResponseEntity();
-                } else {
-                    return ResultCode.DELETED_USER.toResponseEntity();
-                }
+        switch(logIntType){
+            case "GENERAL":
+                Optional<User> optionalWorkshop= userRepository.checkWorkshopExist(nickName,logIntType);
+                if (optionalWorkshop.isPresent()) { // 이미 공방관계자 계정이 있는 경우
+                    log.info("[GENERAL-LOGIN] workshop is exist! user : {}", nickName);
 
-            } else { // 새 유저
-                log.info("[sign up] new user!");
-                log.warn("[sign up] saving user...");
-                try {
-                    User user = User.builder()
-                            .name(requestSaveUserDto.getName())
-                            .nickName(requestSaveUserDto.getNickName())
-                            .password(requestSaveUserDto.getPassword())
-                            .phoneNumber(requestSaveUserDto.getPhoneNumber())
-                            .email(requestSaveUserDto.getEmail())
-                            .profileUrl(requestSaveUserDto.getProfileUrl())
-                            .loginType(requestSaveUserDto.getLoginType())
-                            .profileMessage(requestSaveUserDto.getProfileMessage())
-                            .FCMToken(requestSaveUserDto.getFCMToken())
-                            .useAble(requestSaveUserDto.isUseAble())
-                            .roles(Collections.singletonList("ROLE_WORKSHOP"))
-                            .build();
-                    userRepository.save(user);
-
-                    log.info("[auth] saving review count table..");
-
-                    StarReview starReview = StarReview.builder()
-                            .workshopName(requestSaveUserDto.getNickName())
-                            .starsAverage(BigDecimal.valueOf(0.0))
-                            .sum(new BigDecimal(0))
-                            .count(BigInteger.valueOf(0))
-                            .workshop(user)
-                            .build();
-
-                    starReviewRepository.save(starReview);
-
-                    log.info("[auth] save review count table success!");
-
-                    log.info("[sign up] save user success!");
-
-                    String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName());
-                    log.info("[auth] refresh token : {}", refreshToken);
-
-                    redisConfig.redisTemplate().opsForValue().set(user.getNickName(),
-                            refreshToken,
-                            jwtTokenProvider.getExpireTime(refreshToken).getTime() - System.currentTimeMillis(),
-                            TimeUnit.MILLISECONDS
-                    ); // put {nickname : token} redis
-
-                    log.info("[auth] put token to redis success!");
-
-                    return ResponseEntity.status(ResultCode.OK.getCode())
-                            .body(ResponseAuthDto.builder()
-                                    .accessToken(jwtTokenProvider.createAccessToken(user.getEmail(), user.getNickName(), user.getRoles()))
-                                    .nickname(user.getNickName())
-                                    .name(user.getName())
-                                    .status(CommonResponse.success())
-                                    .build());
-                } catch (DataIntegrityViolationException e) {
-                    e.printStackTrace();
-                    log.error("[auth] fail to save user");
-                    return ResultCode.BAD_REQUEST.toResponseEntity();
-                }
-            }
-        } else { // 소셜 로그인일 경우
-            if (checkUserExist(requestSaveUserDto.getResourceId(), requestSaveUserDto.getLoginType())) { // 소셜 로그인 구매자 조회
-                log.info("[social auth] user is exist!");
-                User user = userRepository.findByResourceIdAndLoginType(requestSaveUserDto.getResourceId(), requestSaveUserDto.getLoginType());
-                if (user.isEnabled()) {
-                    log.info("[social auth] user is available");
-
-                    if(!user.getEmail().equals(requestSaveUserDto.getEmail())){
-                        user.setEmail(requestSaveUserDto.getEmail());
+                    User user = optionalWorkshop.get();
+                    if (user.isEnabled()) {
+                        log.error("[GENERAL-LOGIN] workshop name is duplicated!");
+                        return ResultCode.DUPLICATE_NICKNAME.toResponseEntity();
+                    } else {
+                        return ResultCode.DELETED_USER.toResponseEntity();
                     }
 
-                    user.setResourceId(requestSaveUserDto.getResourceId());
-
-                    String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName());
-
-                    redisConfig.redisTemplate().opsForValue().set(user.getNickName(),
-                            refreshToken,
-                            jwtTokenProvider.getExpireTime(refreshToken).getTime() - System.currentTimeMillis(),
-                            TimeUnit.MILLISECONDS
-                    ); // put {nickname : token} redis
-
-                    log.info("[workshop auth] update user fcm token!");
-                    user.setFCMToken(requestSaveUserDto.getFCMToken());
-                    userRepository.save(user); // user 로그인 시 FCM 토큰 업데이트
-
-                    log.info("[social auth] put token to redis success!");
-
-                    log.info("[social auth] success to social login!");
-
-                    return ResponseEntity.status(ResultCode.OK.getCode())
-                            .body(ResponseAuthDto.builder()
-                                    .accessToken(jwtTokenProvider.createAccessToken(user.getEmail(), user.getNickName(), user.getRoles()))
-                                    .nickname(user.getNickName())
-                                    .resourceId(user.getResourceId())
-                                    .name(user.getName())
-                                    .status(CommonResponse.success())
-                                    .build());
-
                 } else {
-                    return ResultCode.DELETED_USER.toResponseEntity();
+                    /**
+                     * 새 공방 추가
+                     */
+                    log.info("[GENERAL-LOGIN] new workshop!");
+                    log.warn("[GENERAL-LOGIN] saving workshop...");
+                    try {
+                        User user = new User(requestSaveUserDto, "ROLE_WORKSHOP");
+                        userRepository.save(user);
+
+                        log.info("[GENERAL-LOGIN] saving review count table..");
+
+                        starReviewRepository.save(new StarReview(requestSaveUserDto, user));
+
+                        log.info("[GENERAL-LOGIN] save review count table success!");
+                        log.info("[GENERAL-LOGIN] save user success!");
+
+                        String refreshToken = jwtTokenProvider.createRefreshToken(email, nickName);
+
+                        try{
+                            redisConfig.putRefreshToken(nickName,refreshToken); // put {nickname : token} redis
+                            log.info("[GENERAL-LOGIN-SOCIAL] put token to redis success!");
+                        }catch (Exception e){
+                            log.error("[GENERAL-LOGIN-SOCIAL] redis server has wrong");
+                            e.printStackTrace();
+                        }
+
+                        log.info("[GENERAL-LOGIN] put token to redis success!");
+
+                        return ResponseEntity.ok().body(new ResponseAuthDto(user,
+                                jwtTokenProvider.createAccessToken(user.getEmail(),user.getNickName(), user.getRoles())));
+
+                    } catch (DataIntegrityViolationException e) {
+                        e.printStackTrace();
+                        log.error("[GENERAL-LOGIN] fail to save user");
+                        return ResultCode.BAD_REQUEST.toResponseEntity();
+                    }
                 }
-            } else { // 새로운 유저
-                log.info("[social auth] new user!");
+            default:
+                String resourceId = requestSaveUserDto.getResourceId();
+                log.info("[GENERAL-LOGIN-SOCIAL] resource id : {}", resourceId);
+                Optional<User> optionalUser = userRepository.checkSocialUserExist(resourceId, logIntType);
+                if (optionalUser.isPresent()) { // 소셜 로그인 구매자 조회
+                    log.info("[GENERAL-LOGIN-SOCIAL] user is exist!");
+                    User user = optionalUser.get();
+                    if (user.isEnabled()) {
+                        log.info("[GENERAL-LOGIN-SOCIAL] user is available");
 
-                String nickname = nicknameDAO.generateNickName();
+                        /**
+                         * 주기적인 업데이트가 필요한 email, fcm token 정보 업데이트
+                         */
+                        user.regularUpdate(email, resourceId, requestSaveUserDto.getFCMToken());
+                        log.info("[GENERAL-LOGIN-SOCIAL] update regular user data complete!");
+                        userRepository.save(user);
 
-                if (!(userRepository.existsByNickName(nickname))) {
-                    log.info("[social auth] nickname : {}", nickname);
+                        String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName());
+                        try{
+                            redisConfig.putRefreshToken(user.getNickName(), refreshToken); // put {nickname : token} redis
+                            log.info("[GENERAL-LOGIN-SOCIAL] put token to redis success!");
+                        }catch (Exception e){
+                            log.error("[GENERAL-LOGIN-SOCIAL] redis server has wrong");
+                            e.printStackTrace();
+                        }
 
-                    User user = User.builder()
-                            .name(requestSaveUserDto.getName())
-                            .nickName(nickname)
-                            .resourceId(requestSaveUserDto.getResourceId())
-                            .password(requestSaveUserDto.getPassword())
-                            .phoneNumber(requestSaveUserDto.getPhoneNumber())
-                            .email(requestSaveUserDto.getEmail())
-                            .profileUrl(requestSaveUserDto.getProfileUrl())
-                            .loginType(requestSaveUserDto.getLoginType())
-                            .FCMToken(requestSaveUserDto.getFCMToken())
-                            .useAble(requestSaveUserDto.isUseAble())
-                            .roles(Collections.singletonList("ROLE_USER"))
-                            .build();
+                        log.info("[GENERAL-LOGIN-SOCIAL] success to social login!");
 
-                    userRepository.save(user);
+                        return ResponseEntity.ok().body(new ResponseAuthDto(user,
+                                jwtTokenProvider.createAccessToken(user.getEmail(),user.getNickName(), user.getRoles())));
+                    } else {
+                        return ResultCode.DELETED_USER.toResponseEntity();
+                    }
+                } else { // 새로운 유저
+                    log.info("[GENERAL-LOGIN-SOCIAL] new user!");
+                    String newNickname = nicknameDAO.generateNickName();
 
-                    String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName());
+                    if (!(userRepository.existsByNickName(newNickname))) {
+                        log.info("[GENERAL-LOGIN-SOCIAL] nickname : {}", newNickname);
 
-                    log.info("[social auth] refresh token : {}", refreshToken);
+                        User user = new User(requestSaveUserDto, newNickname,"ROLE_USER");
+                        userRepository.save(user);
 
-                    redisConfig.redisTemplate().opsForValue().set(user.getNickName(),
-                            refreshToken,
-                            jwtTokenProvider.getExpireTime(refreshToken).getTime() - System.currentTimeMillis(),
-                            TimeUnit.MILLISECONDS
-                    ); // put {nickname : token} redis
+                        String refreshToken = jwtTokenProvider.createRefreshToken(email, newNickname);
+                        redisConfig.putRefreshToken(newNickname, refreshToken); // put {nickname : token} redis
+                        log.info("[GENERAL-LOGIN-SOCIAL] put token to redis success!");
 
-                    log.info("[social auth] put token to redis success!");
-
-                    return ResponseEntity.status(ResultCode.OK.getCode())
-                            .body(ResponseAuthDto.builder()
-                                    .accessToken(jwtTokenProvider.createAccessToken(user.getEmail(), user.getNickName(), user.getRoles()))
-                                    .nickname(user.getNickName())
-                                    .name(user.getName())
-                                    .resourceId(user.getResourceId())
-                                    .status(CommonResponse.success())
-                                    .build());
+                        return ResponseEntity.ok().body(new ResponseAuthDto(user,
+                                jwtTokenProvider.createAccessToken(user.getEmail(),user.getNickName(), user.getRoles())));
+                    }
+                    return ResponseEntity.status(ResultCode.FAIL.getCode()).body("알 수 없는 원인 때문에 회원가입에 실패하였습니다. 관리자에게 문의해주세요.");
                 }
-                return ResponseEntity.status(ResultCode.FAIL.getCode()).body("알 수 없는 원인 때문에 회원가입에 실패하였습니다. 관리자에게 문의해주세요.");
-            }
         }
     }
 
     @Override
     public ResponseEntity<?> workshopLogin(RequestGeneralSignDto requestGeneralSignDto, String type) {
         Argon2PasswordEncoder encoder = Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
-        List<User> userList = userRepository.findAllByEmailAndLoginType(requestGeneralSignDto.getEmail(), type);
 
-        if(userList.size() > 1){ // 공방 관계자 중 동일한 이메일, 로그인 타입이 있을 때
-            log.info("[workshop auth] duplicate email.. check user password..");
-            for(User tmp : userList){
-                String password = tmp.getPassword();
-                if (encoder.matches(requestGeneralSignDto.getPassword(),password)){ // 패스워드, 이메일 일치하는 계정 찾았을 때
-                    log.info("[workshop auth] check user password success!");
+        Optional<List<User>> optionalUsers = userRepository.findWorkshops(requestGeneralSignDto.getEmail(), type);
+        log.info("[WORKSHOP-LOGIN] user email : {}, type : {}",requestGeneralSignDto.getEmail(), type);
 
-                    log.info("[workshop auth] update user fcm token!");
-                    tmp.setFCMToken(requestGeneralSignDto.getFCMToken());
-                    userRepository.save(tmp);
+        if(optionalUsers.isEmpty()){
+            return ResultCode.NOT_FOUND_USER.toResponseEntity();
+        }else{
+            List<User> userList = optionalUsers.get();
 
-                    String refreshToken = jwtTokenProvider.createRefreshToken(tmp.getEmail(), tmp.getNickName());
+            if(userList.size() > 1){ // 공방 관계자 중 동일한 이메일, 로그인 타입이 있을 때
+                log.info("[WORKSHOP-LOGIN] duplicate email.. check user password..");
 
-                    redisConfig.redisTemplate().opsForValue().set(tmp.getNickName(),
-                            refreshToken,
-                            jwtTokenProvider.getExpireTime(refreshToken).getTime() - System.currentTimeMillis(),
-                            TimeUnit.MILLISECONDS
-                    ); // put {nickname : token} redis
+                for(User user : userList){
+                    String password = user.getPassword();
+                    if (encoder.matches(requestGeneralSignDto.getPassword(), password)){ // 패스워드, 이메일 일치하는 계정 찾았을 때
+                        log.info("[WORKSHOP-LOGIN] check user password success!");
+                        String email = user.getEmail();
+                        String nickname = user.getNickName();
 
-                    log.info("[workshop auth] put token to redis success!");
+                        user.workshopFCMUpdate(requestGeneralSignDto.getFCMToken());
+                        userRepository.save(user);
+                        log.info("[WORKSHOP-LOGIN] update user fcm token!");
 
-                    return ResponseEntity.status(ResultCode.OK.getCode())
-                            .body(ResponseAuthDto.builder()
-                                    .accessToken(jwtTokenProvider.createAccessToken(tmp.getEmail(), tmp.getNickName(),tmp.getRoles()))
-                                    .nickname(tmp.getNickName())
-                                    .name(tmp.getName())
-                                    .status(CommonResponse.success())
-                                    .build());
+                        String refreshToken = jwtTokenProvider.createRefreshToken(email, nickname);
+
+                        redisConfig.putRefreshToken(nickname, refreshToken); // put {nickname : token} redis; // put {nickname : token} redis
+
+                        log.info("[WORKSHOP-LOGIN] put token to redis success!");
+
+                        return ResponseEntity.ok()
+                                .body(new ResponseAuthDto(user,
+                                        jwtTokenProvider.createAccessToken(user.getEmail(),user.getNickName(), user.getRoles())));
+                    }
+                } // 비밀번호가 일치하지 않을 때
+                log.error("[WORKSHOP-LOGIN] password is unmatched");
+                return ResultCode.PASSWORD_NOT_MATCH.toResponseEntity();
+
+            }else{ // 공방관계자 계정이 유일 할 때
+                log.info("[WORKSHOP-LOGIN] no duplicate email! check user password");
+                log.info("[WORKSHOP-LOGIN] userList: {}", userList);
+                User user = userList.get(0);
+                String password = user.getPassword();
+                String nickname = user.getNickName();
+
+                if(!encoder.matches(requestGeneralSignDto.getPassword(), password)) {
+                    return ResponseEntity.status(ResultCode.PASSWORD_NOT_MATCH.getCode())
+                            .body(ResultCode.PASSWORD_NOT_MATCH.getMessage());
                 }
-            } // 비밀번호가 일치하지 않을 때
-            log.error("[workshop auth] password is unmatched");
-            return ResultCode.PASSWORD_NOT_MATCH.toResponseEntity();
+                    log.info("[WORKSHOP-LOGIN] check user password success!");
 
-        }else{ // 공방관계자 계정이 유일 할 때
-            log.info("[workshop auth] no duplicate email! check user password");
-            User user = userList.get(0);
-            String password = user.getPassword();
+                    user.workshopFCMUpdate(requestGeneralSignDto.getFCMToken());
+                    userRepository.save(user);
+                    log.info("[WORKSHOP-LOGIN] update user fcm token!");
 
-            if(encoder.matches(requestGeneralSignDto.getPassword(), password)){
-                log.info("[workshop auth] check user password success!");
+                    String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName());
 
-                log.info("[workshop auth] update user fcm token!");
-                user.setFCMToken(requestGeneralSignDto.getFCMToken());
-                userRepository.save(user);
+                    redisConfig.putRefreshToken(nickname, refreshToken); // put {nickname : token} redis;
 
-                String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getNickName());
+                    log.info("[WORKSHOP-LOGIN] put token to redis success!");
 
-                log.info("[workshop auth] refresh token : {}", refreshToken);
-
-                redisConfig.redisTemplate().opsForValue().set(user.getNickName(),
-                        refreshToken,
-                        jwtTokenProvider.getExpireTime(refreshToken).getTime() - System.currentTimeMillis(),
-                        TimeUnit.MILLISECONDS
-                ); // put {nickname : token} redis
-
-                log.info("[workshop auth] put token to redis success!");
-
-                return ResponseEntity.status(ResultCode.OK.getCode())
-                        .body(ResponseAuthDto.builder()
-                                .accessToken(jwtTokenProvider.createAccessToken(user.getEmail(), user.getNickName(),user.getRoles()))
-                                .nickname(user.getNickName())
-                                .name(user.getName())
-                                .status(CommonResponse.success())
-                                .build());
-            }else{
-                return ResponseEntity.status(ResultCode.PASSWORD_NOT_MATCH.getCode())
-                        .body(ResultCode.PASSWORD_NOT_MATCH.getMessage());
+                    return ResponseEntity.ok()
+                            .body(new ResponseAuthDto(user,
+                                    jwtTokenProvider.createAccessToken(user.getEmail(),user.getNickName(), user.getRoles())));
+                }
             }
         }
-    }
 
     @Override
     public ResponseEntity<?> changeUserProfile(String nickname, String fileUrl) {
-        log.info("[change profile] file url : {}", fileUrl);
-        User user = userRepository.findByNickName(nickname);
-        if(!(user == null)){
-            String profileUrl = user.getProfileUrl();
-            if(profileUrl.equals(fileUrl)){
-                return ResponseEntity.status(ResultCode.DUPLICATE_PROFILE.getCode()).body(ResultCode.DUPLICATE_PROFILE.getMessage());
-            }else{
+        log.info("[CHANGE-USER-PROFILE] file url : {}", fileUrl);
+        Optional<User> optionalUser = userRepository.findUserByNickname(nickname);
 
-                user.setProfileUrl(fileUrl);
+        checkUserData(optionalUser);
+
+        User user = optionalUser.get();
+
+        String profileUrl = user.getProfileUrl();
+        if(profileUrl.equals(fileUrl)){
+            return ResultCode.DUPLICATE_PROFILE.toResponseEntity();
+        }else{
+            user.profileUpdate(fileUrl);
+            try{
                 userRepository.save(user);
-                return ResponseEntity.ok("정상적으로 프로필이 변경되었습니다.");
+            }catch (DataIntegrityViolationException e){
+                log.error("[CHANGE-USER-PROFILE] Data integrity violation: {}", e.getMessage());
+                return ResponseEntity.badRequest().body("프로필 URL의 길이가 너무 깁니다.");
             }
+            return ResponseEntity.ok("정상적으로 프로필이 변경되었습니다.");
         }
-        return ResponseEntity.status(ResultCode.NOT_FOUND_USER.getCode()).body(ResultCode.NOT_FOUND_USER.getMessage());
     }
 
     @Override
     public ResponseEntity<?> checkUserProfile(String nickname) {
-        log.info("[auth] check user by nickname");
-        User user = userRepository.findByNickName(nickname);
+        log.info("[CHECK-USER-PROFILE] check user by nickname");
+        Optional<User> optionalUser = userRepository.findUserByNickname(nickname);
 
-        if(user == null){
-            return ResponseEntity.status(ResultCode.NOT_FOUND_USER.getCode()).body(ResultCode.NOT_FOUND_USER.getMessage());
-        }else if (!user.isEnabled()){
-            return ResponseEntity.status(ResultCode.DELETED_USER.getCode()).body(ResultCode.DELETED_USER.getMessage());
-        }else{
-            ResponseProfileDto responseProfileDto = new ResponseProfileDto();
-            responseProfileDto.setProfileUrl(user.getProfileUrl());
-            responseProfileDto.setName(user.getName());
-            responseProfileDto.setEmail(user.getEmail());
-            responseProfileDto.setAddress(user.getAddress());
-            responseProfileDto.setNickname(nickname);
-            switch (user.getLoginType()){
-                case "GOOGLE":
-                    responseProfileDto.setLoginTypeLogo(googleLoginLogo);
-                    return ResponseEntity.ok(responseProfileDto);
-                case "KAKAO":
-                    responseProfileDto.setLoginTypeLogo(kaKaoLoginLogo);
-                    return ResponseEntity.ok(responseProfileDto);
-                case "GENERAL":
-                    responseProfileDto.setLoginTypeLogo(generalLoginLogo);
-                    return ResponseEntity.ok(responseProfileDto);
-            }
+        checkUserData(optionalUser);
+
+        User user = optionalUser.get();
+        ResponseProfileDto responseProfileDto = new ResponseProfileDto(user);
+
+        switch (user.getLoginType()){
+            case "GOOGLE":
+                responseProfileDto.setLoginTypeLogo(googleLoginLogo);
+                return ResponseEntity.ok(responseProfileDto);
+            case "KAKAO":
+                responseProfileDto.setLoginTypeLogo(kaKaoLoginLogo);
+                return ResponseEntity.ok(responseProfileDto);
+            default:
+                responseProfileDto.setLoginTypeLogo(generalLoginLogo);
+                return ResponseEntity.ok(responseProfileDto);
         }
-        return null;
     }
 
     @Override
     public ResponseEntity<?> saveUserAddress(RequestAddressDto requestAddressDto, String nickname) {
-        log.info("[auth] saving {}'s address...",nickname);
-        User user = userRepository.findByNickName(nickname);
-        if(user == null){
-            return ResultCode.NOT_FOUND_USER.toResponseEntity();
-        }else{
-            try{
-                user.setAddress(requestAddressDto.getAddress());
-                userRepository.save(user);
-                log.info("[auth] successfully save address!");
-                return ResultCode.OK.toResponseEntity();
-            }catch (Exception e){
-                log.error("[auth] fail to save address!");
-                e.printStackTrace();
-                return ResultCode.FAIL.toResponseEntity();
-            }
+        log.info("[SAVE-USER-ADDRESS] saving {}'s address...",nickname);
+        Optional<User> optionalUser = userRepository.findUserByNickname(nickname);
+
+        checkUserData(optionalUser);
+
+        try{
+            User user = optionalUser.get();
+            user.addressUpdate(requestAddressDto.getAddress());
+            userRepository.save(user);
+            log.info("[SAVE-USER-ADDRESS] successfully save address!");
+            return ResultCode.OK.toResponseEntity();
+        }catch (Exception e){
+            log.error("[SAVE-USER-ADDRESS] fail to save address!");
+            e.printStackTrace();
+            return ResultCode.FAIL.toResponseEntity();
         }
     }
+
 
     @Override
     public ResponseEntity<?> deleteToken(String token){
         String nickName = jwtTokenProvider.getUserNickName(token);
-        log.info("[auth] logout user name : {}", nickName);
+        log.info("[DELETE-TOKEN] logout user name : {}", nickName);
 
         if (redisConfig.redisTemplate().opsForValue().get(nickName)!=null){ // refresh token 이 있을 경우
 
@@ -387,58 +325,42 @@ public class AuthDAOImpl implements AuthDAO {
 
     @Override
     public ResponseEntity<?> saveUserInfo(RequestChangeUserInfoDto requestChangeUserInfoDto, String nickname) {
-        log.info("[auth] checking user....");
-        User user = userRepository.findByNickName(nickname);
-        if(user == null){
-            log.error("[auth] not found user!");
-            return ResultCode.NOT_FOUND_USER.toResponseEntity();
-        }else{
-            if(!(user.isEnabled())){
-                log.error("[auth] deleted user!");
-                return ResultCode.DELETED_USER.toResponseEntity();
+        log.info("[SAVE-USER-INFO] checking user....");
+        Optional<User> optionalUser = userRepository.findUserByNickname(nickname);
+        
+        checkUserData(optionalUser);
+        
+        try{
+            User user = optionalUser.get();
+            log.info("[SAVE-USER-INFO] changing user info..");
+            user.infoUpdate(requestChangeUserInfoDto.getAddress(), requestChangeUserInfoDto.getNickname());
+
+            userRepository.save(user);
+
+            if(user.getRoles().get(0).equals("ROLE_WORKSHOP")){
+                updateWorkshopName(nickname, requestChangeUserInfoDto.getNickname());
             }else{
-                try{
-                    log.info("[auth] user is founded! checking user profile..");
-                    log.info("[auth] changing user info..");
-                    user.setAddress(requestChangeUserInfoDto.getAddress());
-                    user.setNickName(requestChangeUserInfoDto.getNickname());
-
-                    log.info("[auth] user role : {}", user.getRoles());
-
-                    userRepository.save(user);
-
-                    if(user.getRoles().get(0).equals("ROLE_WORKSHOP")){
-                        updateWorkshopName(nickname, requestChangeUserInfoDto.getNickname());
-                    }else{
-                        updateUserNickName(nickname, requestChangeUserInfoDto.getNickname());
-                    }
-
-                    log.info("[auth] update user info successfully!");
-                    return ResultCode.OK.toResponseEntity();
-                }catch (Exception e){
-                    e.printStackTrace();
-                    return ResultCode.FAIL.toResponseEntity();
-                }
+                updateUserNickName(nickname, requestChangeUserInfoDto.getNickname());
             }
+
+            log.info("[SAVE-USER-INFO] update user info successfully!");
+            return ResultCode.OK.toResponseEntity();
+        }catch (Exception e){
+            e.printStackTrace();
+            return ResultCode.FAIL.toResponseEntity();
         }
     }
 
     @Override
     public ResponseEntity<?> getWorkShopDetails(Long id) {
-        User user = userRepository.findById(id).get();
-        if(user == null){
-            log.info("[WORKSHOP-DETAILS] no user!");
-            return ResultCode.NOT_FOUND_USER.toResponseEntity();
-        }else{
-            ResponseWorkShopDetailsDto dto = ResponseWorkShopDetailsDto.builder()
-                    .workshopName(user.getNickName())
-                    .description(user.getProfileMessage())
-                    .address(user.getAddress())
-                    .build();
-            log.info("[WORKSHOP-DETAILS] found workshop successfully!");
-            return ResponseEntity.ok(dto);
-        }
+        Optional<User> optionalUser = userRepository.findWorkshopById(id);
+
+        checkUserData(optionalUser);
+
+        log.info("[WORKSHOP-DETAILS] found workshop successfully!");
+        return ResponseEntity.ok(new ResponseWorkShopDetailsDto(optionalUser.get()));
     }
+
 
     @Override
     public Optional<User> getUserByNickname(String nickname) {
@@ -455,6 +377,18 @@ public class AuthDAOImpl implements AuthDAO {
             chatRoomRepository.save(v);
             return null;
         }).collect(Collectors.toList());
+    }
+
+    private ResponseEntity<?> checkUserData(Optional<User> optionalUser){
+        if(optionalUser.isEmpty()){
+            log.error("[]");
+            return ResultCode.NOT_FOUND_USER.toResponseEntity();
+        }
+        User user = optionalUser.get();
+        if(!user.isEnabled()){
+            return ResultCode.DELETED_USER.toResponseEntity();
+        }
+        return null;
     }
 
     private void updateWorkshopName(String nickname, String changeNickname){
@@ -490,12 +424,5 @@ public class AuthDAOImpl implements AuthDAO {
             return null;
         }).collect(Collectors.toList());
         log.info("[auth] update success!");
-    }
-
-    private boolean checkUserExist(String resourceId, String loginType){
-        return userRepository.existsByResourceIdAndLoginType(resourceId, loginType);
-    }
-    private boolean checkWorkshopExist(String nickname, String loginType){
-        return userRepository.existsByNickNameAndLoginType(nickname,loginType);
     }
 }

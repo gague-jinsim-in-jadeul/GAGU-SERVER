@@ -1,5 +1,6 @@
 package org.gagu.gagubackend.auth.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.gagu.gagubackend.auth.dto.request.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,7 +12,7 @@ public interface AuthService {
      * @param type
      * @return
      */
-    ResponseEntity<?> signIn(String authorizeCode, String type);
+    ResponseEntity<?> signIn(String authorizeCode, String type) throws JsonProcessingException;
     /**
      * 소셜 로그인 api 사용 x
      * @param requestOauthSignDto

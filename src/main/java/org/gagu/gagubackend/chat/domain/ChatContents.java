@@ -31,4 +31,11 @@ public class ChatContents {
     @ManyToOne
     @JoinColumn
     private User sender;
+
+    public ChatContents(String sendTime, String message, Long chatRoomId, User sender){
+        this.sendTime = sendTime;
+        this.message = message;
+        this.chatRoomId = chatRoomId;
+        this.sender = sender;
+    }
 }

@@ -23,6 +23,7 @@ import org.gagu.gagubackend.estimate.domain.Estimate;
 import org.gagu.gagubackend.estimate.repository.EstimateRepository;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
 import org.gagu.gagubackend.global.exception.ChatRoomNotFoundException;
+import org.gagu.gagubackend.global.exception.NotFoundUserException;
 import org.gagu.gagubackend.global.exception.NotMemberException;
 import org.gagu.gagubackend.auth.domain.User;
 import org.gagu.gagubackend.auth.dto.request.RequestUserInfoDto;
@@ -155,27 +156,30 @@ public class ChatDAOImpl implements ChatDAO {
 
     @Override
     public ResponseChatDto saveMessage(RequestChatContentsDto requestChatContentsDto, Long roomId, String nickname) {
-        User user = userRepository.findByNickName(nickname);
-        log.info("[chat] sender : {}", user.getNickName());
+        Optional<User> userOptional = userRepository.findUserByNickname(nickname);
+        if(userOptional.isPresent()){
+            String contents = requestChatContentsDto.getChatContentsInfo().getContents();
+            User user = userOptional.get();
+            // 저장되는 채팅 내역
+            ChatContents chatContents = new ChatContents(timeService.makeTimeTemplate(),
+                    contents,
+                    roomId,
+                    user);
 
-        // 저장되는 채팅 내역
-        ChatContents chatContents = ChatContents.builder()
-                .sendTime(timeService.makeTimeTemplate())
-                .sender(user)
-                .message(requestChatContentsDto.getChatContentsInfo().getContents())
-                .chatRoomId(roomId)
-                .build();
+            // 실제 전송되는 메세지
+            ResponseChatDto responseChatDto = ResponseChatDto.builder()
+                    .type(requestChatContentsDto.getType())
+                    .chatContentInfo(new ResponseChatDto.ChatContentInfo(contents))
+                    .nickName(user.getNickName())
+                    .time(chatContents.getSendTime())
+                    .build();
 
-        // 실제 전송되는 메세지
-        ResponseChatDto responseChatDto = ResponseChatDto.builder()
-                .contents(chatContents.getMessage())
-                .nickName(user.getNickName())
-                .time(chatContents.getSendTime())
-                .build();
+            chatContentsRepository.save(chatContents);
 
-        chatContentsRepository.save(chatContents);
-
-        return responseChatDto;
+            return responseChatDto;
+        }else{
+            throw new NotFoundUserException();
+        }
     }
 
     @Override
@@ -281,13 +285,18 @@ public class ChatDAOImpl implements ChatDAO {
 
     @Override
     public ResponseChatDto askEstimate(RequestChatContentsDto message, String nickname) {
-        RequestChatContentsDto.EstimateInfo estimateInfo = message.getEstimateInfo();
+        Optional<Estimate> estimateOptional = estimateRepository.findEstimateById(message.getEstimateInfo().getEstimateId());
+        if(estimateOptional.isPresent()){
 
-        return ResponseChatDto.builder()
-                .contents(estimateInfo.getTemplate())
-                .nickName(nickname)
-                .time(timeService.makeTimeTemplate())
-                .build();
+            return ResponseChatDto.builder()
+                    .type(message.getType())
+                    .estimateInfo(new ResponseChatDto.EstimateInfo(estimateOptional.get()))
+                    .nickName(nickname)
+                    .time(timeService.makeTimeTemplate())
+                    .build();
+        }else{
+            throw new NullPointerException("견적서를 찾을 수 없습니다.");
+        }
     }
 
     @Override
@@ -301,13 +310,14 @@ public class ChatDAOImpl implements ChatDAO {
 
             estimateRepository.save(estimate);
             return ResponseChatDto.builder()
-                    .contents(estimateInfo.getTemplate())
+                    .type(message.getType())
+                    .estimateInfo(new ResponseChatDto.EstimateInfo(estimateOptional.get()))
                     .nickName(nickname)
                     .time(timeService.makeTimeTemplate())
                     .build();
         }else{
             log.error("[CHAT-DAO-IMPL] fail to get estimate info!");
-            throw new NullPointerException();
+            throw new NullPointerException("견적서를 찾을 수 없습니다.");
         }
     }
 

@@ -2,6 +2,7 @@ package org.gagu.gagubackend.auth.service.impl;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public ResponseEntity<?> signIn(String authorizeCode, String type) {
+    public ResponseEntity<?> signIn(String authorizeCode, String type) throws JsonProcessingException {
         switch (type){
             case "kakao":
                 log.info("[kakao login] issue a authorizecode");
@@ -76,7 +77,7 @@ public class AuthServiceImpl implements AuthService {
 
                 HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(params, headers);
 
-                try{
+
                     ResponseEntity<String> response = restTemplate.exchange(
                             kakaoAccessTokenUrl,
                             HttpMethod.POST,
@@ -92,12 +93,6 @@ public class AuthServiceImpl implements AuthService {
                     log.info("[kakao login] dto : {}", requestSignUpDto.toString());
 
                     return authDAO.generalLogin(requestSignUpDto);
-
-                }catch (Exception e){
-                    log.warn("[kakao login] fail authorizecode issued");
-                    return ResponseEntity.status(ResultCode.PASSWORD_NOT_MATCH.getCode())
-                            .body(CommonResponse.fail(ResultCode.PASSWORD_NOT_MATCH));
-                }
 
             case "google":
                 log.info("[google login] issue a authorizecode");
@@ -116,16 +111,16 @@ public class AuthServiceImpl implements AuthService {
 
                 HttpEntity<MultiValueMap<String, String>> googleRequest = new HttpEntity<>(params, headers);
 
-                ResponseEntity<String> response = restTemplate.postForEntity(googleAccessTokenUrl,googleRequest,String.class);
+                 response = restTemplate.postForEntity(googleAccessTokenUrl,googleRequest,String.class);
                 log.info("[google login] authorizecode issued successfully");
                 try{
-                    Map<String, Object> responseMap = objectMapper.readValue(response.getBody(), new TypeReference<Map<String, Object>>() {});
-                    String accessToken = (String) responseMap.get("access_token");
+                    responseMap = objectMapper.readValue(response.getBody(), new TypeReference<Map<String, Object>>() {});
+                    accessToken = (String) responseMap.get("access_token");
                     log.info("[google login] access token issued successfully");
                     log.info("[google login] accessToken : {}",accessToken);
 
                     log.warn("[google login] get user info");
-                    RequestSaveUserDto requestSignUpDto = getGoogleUserInfo(accessToken);
+                    requestSignUpDto = getGoogleUserInfo(accessToken);
 
                     return authDAO.generalLogin(requestSignUpDto);
                 }catch (Exception e){
@@ -289,6 +284,7 @@ public class AuthServiceImpl implements AuthService {
                     .name((String) kakaoAccount.get("name"))
                     .nickName(null)
                     .password(getRandomPassword())
+                    .resourceId("1234")
                     .phoneNumber((String) kakaoAccount.get("phone_number"))
                     .email((String)kakaoAccount.get("email"))
                     .profileUrl((String) profile.get("profile_image_url"))
