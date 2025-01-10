@@ -2,6 +2,7 @@ package org.gagu.gagubackend.auth.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
 import org.gagu.gagubackend.chat.domain.ChatRoomMember;
 import org.gagu.gagubackend.global.domain.BaseTimeEntity;
 import org.hibernate.annotations.ColumnDefault;
@@ -13,6 +14,7 @@ import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,7 +51,7 @@ public class User extends BaseTimeEntity implements UserDetails {
     @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 8000)
     private String profileUrl;
 
     @Column(nullable = false)
@@ -105,5 +107,52 @@ public class User extends BaseTimeEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public void regularUpdate(String email, String resourceId, String fcm){
+        this.email = email;
+        this.resourceId = resourceId;
+        this.FCMToken = fcm;
+    }
+    public void profileUpdate(String fileUrl){
+        this.profileUrl = fileUrl;
+    }
+    public void infoUpdate(String address, String nickname){
+        this.address = address;
+        this.nickName = nickname;
+    }
+    public void addressUpdate(String address){
+        this.address = address;
+    }
+    public void workshopFCMUpdate(String fcm){
+        this.FCMToken = fcm;
+    }
+
+    public User(RequestSaveUserDto dto, String role){
+        this.name = dto.getName();
+        this.nickName = dto.getNickName();
+        this.password = dto.getPassword();
+        this.phoneNumber = dto.getPhoneNumber();
+        this.email = dto.getEmail();
+        this.profileUrl = dto.getProfileUrl();
+        this.loginType = dto.getLoginType();
+        this.profileMessage = dto.getProfileMessage();
+        this.FCMToken = dto.getFCMToken();
+        this.useAble = dto.isUseAble();
+        this.roles = Collections.singletonList(role);
+    }
+    public User(RequestSaveUserDto dto, String nickname, String role){
+        this.name = dto.getName();
+        this.resourceId = dto.getResourceId();
+        this.nickName = nickname;
+        this.password = dto.getPassword();
+        this.phoneNumber = dto.getPhoneNumber();
+        this.email = dto.getEmail();
+        this.profileUrl = dto.getProfileUrl();
+        this.loginType = dto.getLoginType();
+        this.profileMessage = dto.getProfileMessage();
+        this.FCMToken = dto.getFCMToken();
+        this.useAble = dto.isUseAble();
+        this.roles = Collections.singletonList(role);
     }
 }
