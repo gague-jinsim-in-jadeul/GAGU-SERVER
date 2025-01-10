@@ -3,6 +3,7 @@ package org.gagu.gagubackend.auth.controller;
 import com.amazonaws.Response;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,14 +57,14 @@ public class AuthController {
 
     @Operation(summary = "구글 소셜 로그인 콜백 컨트롤러 입니다.")
     @GetMapping("/google/callback")
-    public ResponseEntity<?> getGoogleAuthorizeCode(@RequestParam("code") String authorizeCode, String type){
+    public ResponseEntity<?> getGoogleAuthorizeCode(@RequestParam("code") String authorizeCode, String type) throws JsonProcessingException {
         type = "google";
         log.info("[google login] authorizeCode : {}", authorizeCode);
         return authService.signIn(authorizeCode, type);
     }
     @Operation(summary = "카카오 소셜 로그인 콜백 컨트롤러 입니다.")
     @GetMapping("/kakao/callback")
-    public ResponseEntity<?> getKaKaoAuthorizeCode(@RequestParam("code") String authorizeCode, String type){
+    public ResponseEntity<?> getKaKaoAuthorizeCode(@RequestParam("code") String authorizeCode, String type) throws JsonProcessingException {
         type = "kakao";
         log.info("[kakao login] authorizeCode : {}", authorizeCode);
         return authService.signIn(authorizeCode, type);
@@ -72,6 +73,11 @@ public class AuthController {
     @PostMapping("/google/sign")
     public ResponseEntity<?> googleSign(@RequestBody RequestOauthSignDto requestOauthSignDto){
         String type = "google";
+
+        if(requestOauthSignDto.getProfileUrl().length() > 8000){
+            return ResultCode.TOO_LONG_FILENAME.toResponseEntity();
+        }
+
         return authService.normalSignIn(requestOauthSignDto, type);
     }
     @Operation(summary = "카카오 소셜 로그인 컨트롤러 입니다.")
@@ -79,21 +85,30 @@ public class AuthController {
     public ResponseEntity<?> kaKaoSign(@RequestBody RequestOauthSignDto requestOauthSignDto){
         log.info("[kakao login] dto : {}", requestOauthSignDto);
         String type = "kakao";
+
+        if(requestOauthSignDto.getProfileUrl().length() > 8000){
+            return ResultCode.TOO_LONG_FILENAME.toResponseEntity();
+        }
+
         return authService.normalSignIn(requestOauthSignDto, type);
     }
     @Operation(summary = "일반 회원가입 컨트롤러 입니다.")
     @PostMapping("/general/sign-up")
     public ResponseEntity<?> generalSignUp(@RequestBody RequestGeneralSignUpDto requestGeneralSignUpDto){
-        String type = "general";
+        String type = "GENERAL";
+
+        if(requestGeneralSignUpDto.getProfileUrl().length() > 8000){
+            return ResultCode.TOO_LONG_FILENAME.toResponseEntity();
+        }
         return authService.generalSingUp(requestGeneralSignUpDto, type);
     }
     @Operation(summary = "일반 로그인 컨트롤러 입니다.")
     @PostMapping("/general/sign-in")
     public ResponseEntity<?> generalSignIn(@RequestBody RequestGeneralSignDto requestGeneralSignDto){
-        String type = "general";
+        String type = "GENERAL";
         return authService.generalSignIn(requestGeneralSignDto, type);
     }
-    @Operation(summary = "사용자 프로필 사진 업로드", description = "사용자가 회원가입 시 프로필을 업로드합니다.")
+    @Operation(summary = "공방 관계자 프로필 업로드", description = "회원가입 시 사용자 프로필을 업로드합니다.")
     @PostMapping("/profile-upload")
     public ResponseEntity<?> uploadFile(
             @RequestParam("file") MultipartFile file){
@@ -145,7 +160,6 @@ public class AuthController {
         if(requestPhoneNumber.getPhoneNumber().isEmpty()){
             return ResultCode.BAD_REQUEST.toResponseEntity();
         }
-
 
         Message message = new Message();
 
