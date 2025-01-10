@@ -40,7 +40,7 @@ public class JwtTokenProvider {
     }
 
     public String createRefreshToken(String email, String nickName){
-        log.info("[JwtTokenProvider] create refresh token : {}", email);
+        log.info("[JwtTokenProvider] creating refresh token..");
         String token =  createToken(email, nickName,new ArrayList<>(), refreshTokenValidTime);
         token = "Bearer " + token;
         log.info("[JwtTokenProvider] create refresh token success");
