@@ -17,8 +17,12 @@ public class RequestChatContentsDto {
     @AllArgsConstructor
     @Builder
     public static class EstimateInfo{
-        private String template;
         private Long estimateId;
+        private String furnitureName;
+        private String furniture2DUrl;
+        private String furnitureGlbUrl;
+        private String furnitureGltfUrl;
+        private String createdDate;
         public EstimateInfo(){}
     }
     @Getter

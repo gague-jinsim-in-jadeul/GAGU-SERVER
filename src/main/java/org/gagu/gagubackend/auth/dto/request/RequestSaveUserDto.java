@@ -20,4 +20,8 @@ public class RequestSaveUserDto {
     private String FCMToken;
     private String resourceId;
     private boolean useAble;
+
+    public void updateNickname(String nickname){
+        this.nickName = nickname;
+    }
 }

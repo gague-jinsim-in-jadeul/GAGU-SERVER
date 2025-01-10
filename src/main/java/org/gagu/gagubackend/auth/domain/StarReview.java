@@ -2,6 +2,7 @@ package org.gagu.gagubackend.auth.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.gagu.gagubackend.auth.dto.request.RequestSaveUserDto;
 import org.gagu.gagubackend.global.domain.BaseTimeEntity;
 
 import java.math.BigDecimal;
@@ -35,4 +36,12 @@ public class StarReview extends BaseTimeEntity {
     @OneToOne
     @JoinColumn
     private User workshop; // 공방 일대일 대응
+
+    public StarReview(RequestSaveUserDto dto, User user){
+        this.workshopName = dto.getNickName();
+        this.starsAverage = BigDecimal.valueOf(0.0);
+        this.sum = new BigDecimal(0);
+        this.count = BigInteger.valueOf(0);
+        this.workshop = user;
+    }
 }
