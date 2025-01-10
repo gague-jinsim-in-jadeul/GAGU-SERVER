@@ -8,6 +8,7 @@ import org.gagu.gagubackend.auth.repository.custom.UserRepositoryCustom;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -27,6 +28,44 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
         return Optional.ofNullable(jpaQueryFactory.select(qUser)
                 .from(qUser)
                 .where(qUser.nickName.eq(nickname))
+                .fetchOne());
+    }
+
+    @Override
+    public Optional<User> checkWorkshopExist(String nickname, String loginType) {
+        QUser qUser = QUser.user;
+        return Optional.ofNullable(jpaQueryFactory.select(qUser)
+                .from(qUser)
+                .where(qUser.nickName.eq(nickname).and(qUser.loginType.eq(loginType)))
+                .fetchOne());
+    }
+
+    @Override
+    public Optional<List<User>> findWorkshops(String email, String type) {
+        QUser qUser = QUser.user;
+
+        return Optional.ofNullable(jpaQueryFactory.select(qUser)
+                .from(qUser)
+                .where(qUser.email.eq(email).and(qUser.loginType.eq(type)))
+                .fetch());
+    }
+
+    @Override
+    public Optional<User> checkSocialUserExist(String resourceId, String loginType) {
+        QUser qUser = QUser.user;
+        return Optional.ofNullable(jpaQueryFactory.select(qUser)
+                .from(qUser)
+                .where(qUser.resourceId.eq(resourceId).and(qUser.loginType.eq(loginType)))
+                .fetchOne());
+    }
+
+    @Override
+    public Optional<User> findWorkshopById(Long id) {
+        QUser qUser = QUser.user;
+
+        return Optional.ofNullable(jpaQueryFactory.select(qUser)
+                .from(qUser)
+                .where(qUser.id.eq(id))
                 .fetchOne());
     }
 }
