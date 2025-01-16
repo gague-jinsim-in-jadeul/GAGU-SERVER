@@ -307,10 +307,10 @@ public class AuthDAOImpl implements AuthDAO {
 
         try{
             User user = optionalUser.get();
-            String address = user.getAddress();
+            String address = requestAddressDto.getAddress();
 
             double[] coordinate = changeToCoordinate(address);
-            user.addressUpdate(user.getAddress(), coordinate);
+            user.addressUpdate(address, coordinate);
 
             userRepository.save(user);
             log.info("[SAVE-USER-ADDRESS] successfully save address!");
