@@ -64,9 +64,9 @@ public class ChatServiceImpl implements ChatService {
             case "SEND":
                 return chatDAO.saveMessage(message,roomNumber,nickname);
             case "REQUEST_ESTIMATE":
-                return chatDAO.askEstimate(message,nickname);
+                return chatDAO.askEstimate(message, roomNumber, nickname);
             case "RESPONSE_ESTIMATE":
-                return chatDAO.completeEstimate(message,nickname);
+                return chatDAO.completeEstimate(message, roomNumber, nickname);
         }
         throw new RuntimeException();
     }
