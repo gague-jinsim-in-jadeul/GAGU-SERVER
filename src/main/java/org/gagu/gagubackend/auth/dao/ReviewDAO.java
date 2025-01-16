@@ -3,6 +3,7 @@ package org.gagu.gagubackend.auth.dao;
 import org.gagu.gagubackend.auth.dto.request.RequestWriteReviewDto;
 import org.gagu.gagubackend.auth.dto.response.ResponseWorkshopDto;
 import org.gagu.gagubackend.chat.dto.response.ResponseReviewDto;
+import org.gagu.gagubackend.global.domain.enums.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -29,5 +30,5 @@ public interface ReviewDAO {
      * @param pageable
      * @return
      */
-    Page<ResponseWorkshopDto> getAllWorkShop(Pageable pageable);
+    Page<ResponseWorkshopDto> getAllWorkShop(FilterType filterType, Pageable pageable, Double longitude, Double latitude);
 }
