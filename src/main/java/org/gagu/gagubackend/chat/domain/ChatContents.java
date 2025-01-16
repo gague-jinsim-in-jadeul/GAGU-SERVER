@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -28,14 +27,29 @@ public class ChatContents {
     @Column(nullable = false)
     private Long chatRoomId;
 
+    @Column(nullable = false)
+    private String MessageType;
+
+    @Column(nullable = true)
+    private Long estimateId;
+
     @ManyToOne
     @JoinColumn
     private User sender;
 
-    public ChatContents(String sendTime, String message, Long chatRoomId, User sender){
+    public ChatContents(String sendTime, String message, Long chatRoomId, String messageType, User sender){
         this.sendTime = sendTime;
         this.message = message;
         this.chatRoomId = chatRoomId;
+        this.MessageType = messageType;
+        this.sender = sender;
+    }
+    public ChatContents(String sendTime, String message, Long chatRoomId, String messageType, Long estimateId, User sender){
+        this.sendTime = sendTime;
+        this.message = message;
+        this.chatRoomId = chatRoomId;
+        this.MessageType = messageType;
+        this.estimateId = estimateId;
         this.sender = sender;
     }
 }

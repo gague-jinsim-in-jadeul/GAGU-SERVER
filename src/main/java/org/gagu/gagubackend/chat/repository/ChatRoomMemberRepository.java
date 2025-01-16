@@ -15,7 +15,6 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
     boolean existsChatRoomMemberByRoomId(ChatRoom chatRoom);
     List<ChatRoomMember> findAllByRoomId(ChatRoom chatRoom);
     List<ChatRoomMember> findAllByMember(User user);
-    boolean existsChatRoomMemberByRoomIdAndMember(ChatRoom id, User member);
     @Query("SELECT CASE WHEN COUNT(c1) > 0 THEN true ELSE false END FROM ChatRoomMember c1 " +
             "JOIN ChatRoomMember c2 ON c1.roomId = c2.roomId " +
             "WHERE c1.member = :userA AND c2.member = :userB")

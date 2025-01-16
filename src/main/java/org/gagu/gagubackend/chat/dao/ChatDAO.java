@@ -85,7 +85,7 @@ public interface ChatDAO {
      * @param nickname
      * @return
      */
-    ResponseChatDto askEstimate(RequestChatContentsDto message, String nickname);
+    ResponseChatDto askEstimate(RequestChatContentsDto message, Long roomNumber, String nickname);
 
     /**
      * 견적서 완료
@@ -93,5 +93,5 @@ public interface ChatDAO {
      * @param nickname
      * @return
      */
-    ResponseChatDto completeEstimate(RequestChatContentsDto message, String nickname);
+    ResponseChatDto completeEstimate(RequestChatContentsDto message, Long roomNumber, String nickname);
 }
