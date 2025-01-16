@@ -7,6 +7,7 @@ import org.gagu.gagubackend.auth.dto.request.RequestWriteReviewDto;
 import org.gagu.gagubackend.auth.dto.response.ResponseWorkshopDto;
 import org.gagu.gagubackend.auth.service.ReviewService;
 import org.gagu.gagubackend.chat.dto.response.ResponseReviewDto;
+import org.gagu.gagubackend.global.domain.enums.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public Page<ResponseWorkshopDto> getAllWorkShop(Pageable pageable) {
-        return reviewDAO.getAllWorkShop(pageable);
+    public Page<ResponseWorkshopDto> getAllWorkShop(FilterType filterType, Pageable pageable, Double longitude, Double latitude) {
+        return reviewDAO.getAllWorkShop(filterType,pageable,longitude,latitude);
     }
 }

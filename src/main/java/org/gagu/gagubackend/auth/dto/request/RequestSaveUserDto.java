@@ -2,6 +2,8 @@ package org.gagu.gagubackend.auth.dto.request;
 
 import lombok.*;
 
+import java.security.SecureRandom;
+
 @Getter
 @Setter
 @NoArgsConstructor

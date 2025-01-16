@@ -12,6 +12,7 @@ import org.gagu.gagubackend.auth.repository.ReviewRepository;
 import org.gagu.gagubackend.auth.repository.StarReviewRepository;
 import org.gagu.gagubackend.auth.repository.UserRepository;
 import org.gagu.gagubackend.chat.dto.response.ResponseReviewDto;
+import org.gagu.gagubackend.global.domain.enums.FilterType;
 import org.gagu.gagubackend.global.domain.enums.ResultCode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -100,21 +101,14 @@ public class ReviewDAOImpl implements ReviewDAO {
     }
 
     @Override
-    public Page<ResponseWorkshopDto> getAllWorkShop(Pageable pageable) {
-        Page<StarReview> starReviews = starReviewRepository.findAll(pageable);
+    public Page<ResponseWorkshopDto> getAllWorkShop(FilterType filterType, Pageable pageable, Double longitude, Double latitude) {
+        Page<StarReview> starReviews = starReviewRepository.pageStartReviews(filterType,pageable, longitude, latitude);
+
+        log.info("[GET-ALL-WORKSHOP] total elements : {}", starReviews.getTotalElements());
         log.info("[GET-ALL-WORKSHOP] checking workshops..");
         List<ResponseWorkshopDto> dtos = starReviews.stream()
                 .map(starReview -> {
-                    ResponseWorkshopDto dto = new ResponseWorkshopDto();
-                    dto.setId(starReview.getWorkshop().getId());
-                    dto.setCount(starReview.getCount());
-                    dto.setStarAverage(starReview.getStarsAverage());
-                    dto.setThumbnail(starReview.getWorkshop().getProfileUrl());
-                    dto.setAddress(starReview.getWorkshop().getAddress());
-                    dto.setDescription(starReview.getWorkshop().getProfileMessage());
-                    dto.setWorkshopName(starReview.getWorkshopName());
-
-                    return dto;
+                    return new ResponseWorkshopDto(starReview);
                 }).collect(Collectors.toList());
         log.info("[GET-ALL-WORKSHOP] collect workshop success!");
         return new PageImpl<>(dtos, pageable, starReviews.getTotalElements());
