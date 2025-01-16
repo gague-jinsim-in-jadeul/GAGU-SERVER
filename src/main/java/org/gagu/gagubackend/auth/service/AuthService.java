@@ -80,6 +80,12 @@ public interface AuthService {
      * @return
      */
     ResponseEntity<?> getWorkShopDetails(Long id);
-
+    /**
+     * 전화번호 저장
+     * @param phoneNumber
+     * @param nickname
+     * @return
+     */
+    ResponseEntity<?> savePhone(String phoneNumber, String nickname);
     boolean checkUserExistByNickname(String nickname);
 }

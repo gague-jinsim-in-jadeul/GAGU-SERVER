@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -73,6 +72,12 @@ public class User extends BaseTimeEntity implements UserDetails {
     @Column(nullable = true) // 임시 true
     private String FCMToken;
 
+    @Column(nullable = true)
+    private Double latitude;
+
+    @Column(nullable = true)
+    private Double longitude;
+
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> roles = new ArrayList<>();
 
@@ -117,11 +122,15 @@ public class User extends BaseTimeEntity implements UserDetails {
     public void profileUpdate(String fileUrl){
         this.profileUrl = fileUrl;
     }
-    public void infoUpdate(String address, String nickname){
-        this.address = address;
+    public void updateNickname(String nickname){
         this.nickName = nickname;
     }
-    public void addressUpdate(String address){
+    public void updatePhone(String phoneNumber){
+        this.phoneNumber = phoneNumber;
+    }
+    public void addressUpdate(String address, double[] coordinate){
+        this.longitude = coordinate[0];
+        this.latitude = coordinate[1];
         this.address = address;
     }
     public void workshopFCMUpdate(String fcm){

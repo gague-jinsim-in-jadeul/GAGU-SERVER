@@ -1,5 +1,6 @@
 package org.gagu.gagubackend.auth.dao.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gagu.gagubackend.auth.dao.AuthDAO;
@@ -24,12 +25,18 @@ import org.gagu.gagubackend.auth.domain.User;
 import org.gagu.gagubackend.auth.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -52,6 +59,10 @@ public class AuthDAOImpl implements AuthDAO {
     private String googleLoginLogo;
     @Value("${login.type.general.logo}")
     private String generalLoginLogo;
+    @Value("${kako.api.token}")
+    public String KAKAO_API_TOKEN;
+    @Value("${kakao.local.url}")
+    public String KAKAO_LOCAL_URL;
 
     @Override
     public ResponseEntity<?> generalLogin(RequestSaveUserDto requestSaveUserDto) {
@@ -177,6 +188,10 @@ public class AuthDAOImpl implements AuthDAO {
             return ResultCode.NOT_FOUND_USER.toResponseEntity();
         }else{
             List<User> userList = optionalUsers.get();
+            if(userList.size() == 0){
+                log.info("[WORKSHOP-LOGIN] no user!");
+                return ResultCode.NOT_FOUND_USER.toResponseEntity();
+            }
 
             if(userList.size() > 1){ // 공방 관계자 중 동일한 이메일, 로그인 타입이 있을 때
                 log.info("[WORKSHOP-LOGIN] duplicate email.. check user password..");
@@ -292,7 +307,11 @@ public class AuthDAOImpl implements AuthDAO {
 
         try{
             User user = optionalUser.get();
-            user.addressUpdate(requestAddressDto.getAddress());
+            String address = user.getAddress();
+
+            double[] coordinate = changeToCoordinate(address);
+            user.addressUpdate(user.getAddress(), coordinate);
+
             userRepository.save(user);
             log.info("[SAVE-USER-ADDRESS] successfully save address!");
             return ResultCode.OK.toResponseEntity();
@@ -325,31 +344,66 @@ public class AuthDAOImpl implements AuthDAO {
 
     @Override
     public ResponseEntity<?> saveUserInfo(RequestChangeUserInfoDto requestChangeUserInfoDto, String nickname) {
+        String changeAddress = requestChangeUserInfoDto.getAddress();
+        String changeNickname = requestChangeUserInfoDto.getNickname();
         log.info("[SAVE-USER-INFO] checking user....");
         Optional<User> optionalUser = userRepository.findUserByNickname(nickname);
-        
+
         checkUserData(optionalUser);
-        
-        try{
-            User user = optionalUser.get();
-            log.info("[SAVE-USER-INFO] changing user info..");
-            user.infoUpdate(requestChangeUserInfoDto.getAddress(), requestChangeUserInfoDto.getNickname());
+        User user = optionalUser.get();
 
-            userRepository.save(user);
-
-            if(user.getRoles().get(0).equals("ROLE_WORKSHOP")){
-                updateWorkshopName(nickname, requestChangeUserInfoDto.getNickname());
-            }else{
-                updateUserNickName(nickname, requestChangeUserInfoDto.getNickname());
-            }
-
-            log.info("[SAVE-USER-INFO] update user info successfully!");
+        if (user.getNickName().equals(changeNickname) && user.getAddress().equals(changeAddress)) {
             return ResultCode.OK.toResponseEntity();
-        }catch (Exception e){
-            e.printStackTrace();
-            return ResultCode.FAIL.toResponseEntity();
+        } else {
+            if (user.getNickName().equals(changeNickname)) {
+                try {
+                    double[] coordinate = changeToCoordinate(changeAddress);
+                    user.addressUpdate(changeAddress, coordinate);
+                    userRepository.save(user);
+                } catch (Exception e) {
+                    log.error("[SAVE-USER-INFO] fail to change address!");
+                    e.printStackTrace();
+                    return ResultCode.FAIL.toResponseEntity();
+                }
+            } else if (user.getAddress().equals(changeAddress)) {
+                try {
+                    user.updateNickname(changeNickname);
+                    userRepository.save(user);
+                    if (user.getRoles().get(0).equals("ROLE_WORKSHOP")) {
+                        updateWorkshopName(nickname, requestChangeUserInfoDto.getNickname());
+                    } else {
+                        updateUserNickName(nickname, requestChangeUserInfoDto.getNickname());
+                    }
+                    return ResultCode.OK.toResponseEntity();
+                } catch (Exception e) {
+                    log.error("[SAVE-USER-INFO] fail to change nickname!");
+                    e.printStackTrace();
+                    return ResultCode.FAIL.toResponseEntity();
+                }
+            } else {
+                try {
+                    double[] coordinate = changeToCoordinate(changeAddress);
+                    user.addressUpdate(changeAddress, coordinate);
+                    user.updateNickname(changeNickname);
+                    userRepository.save(user);
+
+                    if (user.getRoles().get(0).equals("ROLE_WORKSHOP")) {
+                        updateWorkshopName(nickname, requestChangeUserInfoDto.getNickname());
+                    } else {
+                        updateUserNickName(nickname, requestChangeUserInfoDto.getNickname());
+                    }
+                    return ResultCode.OK.toResponseEntity();
+                } catch (Exception e) {
+                    log.error("[SAVE-USER-INFO] fail to change nickname and address!");
+                    e.printStackTrace();
+                    return ResultCode.FAIL.toResponseEntity();
+                }
+            }
         }
+        return null;
     }
+
+
 
     @Override
     public ResponseEntity<?> getWorkShopDetails(Long id) {
@@ -367,6 +421,23 @@ public class AuthDAOImpl implements AuthDAO {
         return userRepository.findUserByNickname(nickname);
     }
 
+    @Override
+    public ResponseEntity<?> savePhoneNumber(String phoneNumber, String nickname) {
+        Optional<User> userOptional = userRepository.findUserByNickname(nickname);
+        checkUserData(userOptional);
+
+        try{
+            User user = userOptional.get();
+            user.updatePhone(phoneNumber);
+            userRepository.save(user);
+            return ResultCode.OK.toResponseEntity();
+        }catch (Exception e){
+            log.error("[SAVE-PHONE-NUMBER] fail to update phone number!");
+            e.printStackTrace();
+            return ResultCode.FAIL.toResponseEntity();
+        }
+    }
+
     private void updateUserNickName(String nickname, String changeNickname){
         log.info("[auth] update user nickname....");
         List<ChatRoom> chatLst = chatRoomRepository.findAllByRoomNameContains(nickname);
@@ -381,11 +452,12 @@ public class AuthDAOImpl implements AuthDAO {
 
     private ResponseEntity<?> checkUserData(Optional<User> optionalUser){
         if(optionalUser.isEmpty()){
-            log.error("[]");
+            log.error("[CHECK-USER-DATA] not found user!");
             return ResultCode.NOT_FOUND_USER.toResponseEntity();
         }
         User user = optionalUser.get();
         if(!user.isEnabled()){
+            log.error("[CHECK-USER-DATA] deleted user!");
             return ResultCode.DELETED_USER.toResponseEntity();
         }
         return null;
@@ -424,5 +496,32 @@ public class AuthDAOImpl implements AuthDAO {
             return null;
         }).collect(Collectors.toList());
         log.info("[auth] update success!");
+    }
+    private double[] changeToCoordinate(String address){
+        RestTemplate rt = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.add("Authorization", KAKAO_API_TOKEN);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = rt.exchange(KAKAO_LOCAL_URL + address, HttpMethod.GET, entity,String.class);
+        String body = response.getBody();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            Map<String, Object> responseMap = objectMapper.readValue(body, Map.class);
+            List<Map<String, Object>> documents = (List<Map<String, Object>>) responseMap.get("documents");
+
+            if (!documents.isEmpty()) {
+                Map<String, Object> firstDocument = documents.get(0);
+                double x = Double.parseDouble(firstDocument.get("x").toString());
+                double y = Double.parseDouble(firstDocument.get("y").toString());
+                return new double[]{x, y};
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

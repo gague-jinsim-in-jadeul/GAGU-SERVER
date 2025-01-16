@@ -255,6 +255,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public ResponseEntity<?> savePhone(String phoneNumber, String nickname) {
+        return authDAO.savePhoneNumber(phoneNumber, nickname);
+    }
+
+    @Override
     public boolean checkUserExistByNickname(String nickname) {
         Optional<User> userOptional = authDAO.getUserByNickname(nickname);
         return userOptional.isPresent();

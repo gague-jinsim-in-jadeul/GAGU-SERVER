@@ -78,4 +78,12 @@ public interface AuthDAO {
      * @return
      */
     Optional<User> getUserByNickname(String nickname);
+
+    /**
+     * 전화번호 저장
+     * @param phoneNumber
+     * @param nickname
+     * @return
+     */
+    ResponseEntity<?> savePhoneNumber(String phoneNumber, String nickname);
 }
