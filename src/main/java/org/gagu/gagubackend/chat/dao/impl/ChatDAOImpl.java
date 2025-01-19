@@ -202,7 +202,7 @@ public class ChatDAOImpl implements ChatDAO {
                                         break;
                                     }
                                 case "REQUEST_ESTIMATE":
-                                    optionalEstimate = estimateRepository.findEstimateById(v.getChatRoomId());
+                                    optionalEstimate = estimateRepository.findEstimateById(v.getEstimateId());
                                     if(optionalEstimate.isPresent()){
                                         dto.reqEstimateBuilder(v, optionalEstimate.get());
                                         break;
