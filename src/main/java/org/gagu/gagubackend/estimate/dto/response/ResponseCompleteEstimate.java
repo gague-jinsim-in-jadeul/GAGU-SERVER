@@ -2,6 +2,7 @@ package org.gagu.gagubackend.estimate.dto.response;
 
 import lombok.*;
 import org.gagu.gagubackend.chat.dto.response.ResponseChatDto;
+import org.gagu.gagubackend.estimate.domain.Estimate;
 
 @Getter
 @Setter
@@ -15,7 +16,20 @@ public class ResponseCompleteEstimate {
     private String furniture2DUrl;
     private String furnitureGlbUrl;
     private String furnitureGltfUrl;
-    private String createdDate;
+    private String modifiedDate;
+    private String makerName;
     private String price;
     private String description;
+
+    public ResponseCompleteEstimate(Estimate estimate){
+        this.id = estimate.getId();
+        this.furnitureName = estimate.getFurnitureName();
+        this.furniture2DUrl = estimate.getFurniture2DUrl();
+        this.furnitureGlbUrl = estimate.getFurnitureGlbUrl();
+        this.furnitureGltfUrl = estimate.getFurnitureGltfUrl();
+        this.modifiedDate = estimate.getModifiedDate();
+        this.makerName = estimate.getMakerName();
+        this.price = estimate.getPrice();
+        this.description = estimate.getDescription();
+    }
 }

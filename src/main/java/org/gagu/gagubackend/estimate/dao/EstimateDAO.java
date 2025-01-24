@@ -26,7 +26,7 @@ public interface EstimateDAO {
     Page<ResponseMyFurnitureDto> getMyFurniture(String nickname, Pageable pageable);
 
     /**
-     * 저장한 견적서 반환
+     * 공방관계자가 견적 선정을 끝낸 견적서를 반환합니다.
      * @param nickname
      * @param pageable
      * @return

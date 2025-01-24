@@ -78,8 +78,8 @@ public class EstimateController {
         String token = jwtTokenProvider.extractToken(request);
         String nickname = jwtTokenProvider.getUserNickName(token);
 
-        Pageable pageable = PageRequest.of(page,4, Sort.Direction.DESC,"modifiedDate");
-        return ResponseEntity.ok(estimateService.getEstimate(nickname,pageable));
+        Pageable pageable = PageRequest.of(page,4);
+        return ResponseEntity.ok(estimateService.getEstimate(nickname, pageable));
     }
 
     @Operation(summary = "저장한 가구 삭제", description = "사용자가 저장한 2D, 3D 이미지를 삭제합니다.")
