@@ -40,7 +40,7 @@ public interface EstimateService {
     ResponseEntity<?> saveEstimate(EstimateChatContentsDto dto, String nickname);
 
     /**
-     * 공방관계자가 작성한 견적서를 반환합니다.
+     * 공방관계자가 견적 선정을 끝낸 견적서를 반환합니다.
      * @param nickname
      * @param pageable
      * @return paging

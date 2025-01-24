@@ -81,36 +81,21 @@ public class EstimateDAOImpl implements EstimateDAO {
     public Page<ResponseCompleteEstimate> getMyEstimates(String nickname, Pageable pageable) {
         try{
             log.info("[GET-MY-FURNITURE] collecting my furnitures...");
-            User user = userRepository.findByNickName(nickname);
-            Page<Estimate> estimates = estimateRepository.findByNickName(user, pageable);
+            Optional<User> optionalUser = userRepository.findUserByNickname(nickname);
 
-            AtomicInteger cnt  = new AtomicInteger();
+            Page<Estimate> estimates = estimateRepository.findCompletedEstimates(optionalUser.get(), pageable);
+
             List<ResponseCompleteEstimate> estimatesDto = estimates.stream()
-                    .map(estimate -> {
-
-                        ResponseCompleteEstimate dto = new ResponseCompleteEstimate();
-                        if(estimate.getDescription() != null && estimate.getPrice() != null){
-                            cnt.getAndIncrement();
-                            dto.setId(estimate.getId());
-                            dto.setFurniture2DUrl(estimate.getFurniture2DUrl());
-                            dto.setFurnitureGlbUrl(estimate.getFurnitureGlbUrl());
-                            dto.setFurnitureGltfUrl(estimate.getFurnitureGltfUrl());
-                            dto.setFurnitureName(estimate.getFurnitureName());
-                            dto.setPrice(estimate.getPrice());
-                            dto.setDescription(estimate.getDescription());
-                            dto.setCreatedDate(estimate.getCreatedDate());
-                            return dto;
-                        }
-                        return null;
-                    }).collect(Collectors.toList());
+                    .map(v -> {
+                        return new ResponseCompleteEstimate(v);
+                        }).collect(Collectors.toList());
 
             return new PageImpl<>(estimatesDto, pageable, estimatesDto.size());
         }catch (Exception e){
             log.error("[GET-MY-FURNITURE] fail to collect my furnitures");
             e.printStackTrace();
+            return null;
         }
-
-        return null;
     }
 
     @Override
