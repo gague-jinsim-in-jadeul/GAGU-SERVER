@@ -72,7 +72,16 @@ public class SecurityConfiguration {
                                 "/chat-2d/**",
                                 "/api/v1/auth/log-out",
                                 "/api/v1/estimate/details",
-                                "/api/v1/auth/profile-upload",
+                                "/api/v1/auth/profile-upload","/v3/api-docs/**","/swagger-ui/index.html",
+                                "/swagger-ui/swagger-ui-standalone-preset.js",
+                                "/swagger-ui/swagger-initializer.js",
+                                "/swagger-ui/swagger-ui-bundle.js",
+                                "/swagger-ui/swagger-ui.css",
+                                "/swagger-ui/index.css",
+                                "/swagger-ui/favicon-32x32.png",
+                                "/swagger-ui/favicon-16x16.png",
+                                "/api-docs/json/swagger-config",
+                                "/api-docs/json", "/swagger-ui/**",
                                 "/api/v1/fcm/**").permitAll() // 채팅
                         .requestMatchers(PATTERNS).permitAll()
 
