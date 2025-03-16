@@ -193,6 +193,11 @@ public class AuthController {
         log.info("[logout] token : {}", token);
         return authService.logOut(token);
     }
+    @Operation(summary = "Google play 인증용 로그아웃", description = "log-out")
+    @GetMapping("/test-logout")
+    public ResponseEntity<?> testLogOut(){
+        return ResultCode.OK.toResponseEntity();
+    }
 
     private String getRandomNumber() {
         log.info("[sendNumber] creating random number..");
