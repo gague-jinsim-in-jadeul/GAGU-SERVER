@@ -30,6 +30,9 @@ public class Estimate extends BaseTimeEntity {
     @Column(nullable = false)
     private String furnitureGltfUrl; // 3D GLTF URL
 
+    @Column(nullable = false)
+    private String furnitureUsdzfUrl; // 3D USDZ URL
+
     @Column(nullable = true)
     private String price;
 

@@ -14,14 +14,16 @@ public class ResponseMyFurnitureDto {
     private String furniture2DUrl;
     private String furnitureGlbUrl;
     private String furnitureGltfUrl;
+    private String furnitureUsdzUrl;
     private String createdDate;
 
-    public ResponseMyFurnitureDto(Long id, String furnitureName, String furniture2DUrl, String furnitureGlbUrl, String furnitureGltfUrl, String createdDate) {
+    public ResponseMyFurnitureDto(Long id, String furnitureName, String furniture2DUrl, String furnitureGlbUrl, String furnitureGltfUrl, String furnitureUsdzUrl, String createdDate) {
         this.id = id;
         this.furnitureName = furnitureName;
         this.furniture2DUrl = furniture2DUrl;
         this.furnitureGlbUrl = furnitureGlbUrl;
         this.furnitureGltfUrl = furnitureGltfUrl;
+        this.furnitureUsdzUrl = furnitureUsdzUrl;
         this.createdDate = createdDate;
     }
 
@@ -34,6 +36,7 @@ public class ResponseMyFurnitureDto {
                 estimate.getFurniture2DUrl(),
                 estimate.getFurnitureGlbUrl(),
                 estimate.getFurnitureGltfUrl(),
+                estimate.getFurnitureUsdzfUrl(),
                 estimate.getCreatedDate());
     }
 }

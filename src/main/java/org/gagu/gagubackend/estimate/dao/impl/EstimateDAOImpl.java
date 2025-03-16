@@ -43,6 +43,7 @@ public class EstimateDAOImpl implements EstimateDAO {
                 .furniture2DUrl(requestSaveFurnitureDto.getFurniture2DUrl())
                 .furnitureGlbUrl(requestSaveFurnitureDto.getFurnitureGlbUrl())
                 .furnitureGltfUrl(requestSaveFurnitureDto.getFurnitureGltfUrl())
+                .furnitureUsdzfUrl(requestSaveFurnitureDto.getFurnitureUsdzUrl())
                 .build();
         try{
             estimateRepository.save(estimate);

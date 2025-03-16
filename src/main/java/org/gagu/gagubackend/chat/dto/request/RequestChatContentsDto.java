@@ -22,6 +22,7 @@ public class RequestChatContentsDto {
         private String furniture2DUrl;
         private String furnitureGlbUrl;
         private String furnitureGltfUrl;
+        private String furnitureUsdzUrl;
         private String createdDate;
         public EstimateInfo(){}
     }

@@ -13,4 +13,5 @@ public class RequestSaveFurnitureDto {
     private String furniture2DUrl;
     private String furnitureGlbUrl;
     private String furnitureGltfUrl;
+    private String furnitureUsdzUrl;
 }

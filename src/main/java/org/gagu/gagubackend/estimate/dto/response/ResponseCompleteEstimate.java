@@ -16,6 +16,7 @@ public class ResponseCompleteEstimate {
     private String furniture2DUrl;
     private String furnitureGlbUrl;
     private String furnitureGltfUrl;
+    private String furnitureUsdzUrl;
     private String modifiedDate;
     private String makerName;
     private String price;
@@ -27,6 +28,7 @@ public class ResponseCompleteEstimate {
         this.furniture2DUrl = estimate.getFurniture2DUrl();
         this.furnitureGlbUrl = estimate.getFurnitureGlbUrl();
         this.furnitureGltfUrl = estimate.getFurnitureGltfUrl();
+        this.furnitureUsdzUrl = estimate.getFurnitureUsdzfUrl();
         this.modifiedDate = estimate.getModifiedDate();
         this.makerName = estimate.getMakerName();
         this.price = estimate.getPrice();

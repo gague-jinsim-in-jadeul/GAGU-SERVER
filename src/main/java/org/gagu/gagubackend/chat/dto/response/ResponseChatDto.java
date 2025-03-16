@@ -39,6 +39,7 @@ public class ResponseChatDto {
       private String furniture2DUrl;
       private String furnitureGlbUrl;
       private String furnitureGltfUrl;
+      private String furnitureUsdzUrl;
       private String createdDate;
       private String description;
       private String price;
@@ -50,6 +51,7 @@ public class ResponseChatDto {
          this.furniture2DUrl = estimate.getFurniture2DUrl();
          this.furnitureGlbUrl = estimate.getFurnitureGlbUrl();
          this.furnitureGltfUrl = estimate.getFurnitureGltfUrl();
+         this.furnitureUsdzUrl = estimate.getFurnitureUsdzfUrl();
          this.createdDate = estimate.getCreatedDate();
          this.price = estimate.getPrice();
          this.makerName = estimate.getMakerName();
